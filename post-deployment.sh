@@ -1,0 +1,25 @@
+#!/bin/bash
+# After Render deployment, run this script to update CORS
+# Replace YOUR-FRONTEND-URL with your actual Render frontend URL
+
+echo "=========================================="
+echo "  Update CORS for Production"
+echo "=========================================="
+echo ""
+echo "After your Render deployment completes:"
+echo ""
+echo "1. Note your frontend URL from Render Dashboard"
+echo "   Example: https://news-ai-frontend.onrender.com"
+echo ""
+echo "2. Run this command:"
+echo "   cd unified_tools_backend"
+echo "   python update_cors.py https://YOUR-FRONTEND-URL.onrender.com"
+echo ""
+echo "3. Commit and push:"
+echo "   git add main.py"
+echo "   git commit -m 'Update CORS for production'"
+echo "   git push"
+echo ""
+echo "4. Render will automatically redeploy your backend"
+echo ""
+echo "=========================================="
