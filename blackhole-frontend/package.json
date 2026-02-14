@@ -13,8 +13,7 @@
     "@emotion/is-prop-valid": "^1.4.0",
     "@prisma/client": "^6.19.2",
     "@supabase/supabase-js": "^2.95.3",
-    "@types/react": "18.2.0",
-    "@types/react-dom": "18.2.0",
+
     "autoprefixer": "^10.4.0",
     "axios": "^1.6.0",
     "bcryptjs": "^3.0.3",
