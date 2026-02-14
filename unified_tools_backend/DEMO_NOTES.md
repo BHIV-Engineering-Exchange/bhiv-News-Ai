@@ -48,3 +48,24 @@ During the live demo, adhere to these constraints to avoid timeouts:
 
 **Status**: READY FOR DEPLOYMENT
 **Tag**: `insight-demo-stable-v1`
+
+## 5. Insight Node Specifics (Sankalp)
+
+### 📊 Latency Expectations
+- **Scraping**: 2-5 seconds (varies by site).
+- **Vetting**: 1-2 seconds (AI analysis).
+- **Summarization**: 2-3 seconds.
+- **Total Workflow**: Expect **8-15 seconds** for a full result.
+
+### 🛑 Known Limits
+- **Twitter/X**: Direct scraping may fail without API keys. Fallback to "General News" search is active.
+- **Paywalls**: WSJ/NYT may return limited content. This is expected behavior.
+- **Audio Generation**: TTS is generated on-demand. First play may take 1-2s to buffer.
+
+### 🛡️ Failure Discipline
+- If **Scraping Fails**: The system will **NOT** return a mock article. It will show a "Scraping Failed" error. This is intentional for production transparency.
+- If **Vetting Fails**: Authenticity score will show "N/A" or "Unknown" rather than guessing.
+
+### 🎥 Video Search
+- Videos are fetched from **YouTube** (primary) and **Twitter** (secondary).
+- If no exact match is found, the system performs a broader topic search to ensure the sidebar is never empty.
