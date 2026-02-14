@@ -30,15 +30,20 @@ export default function TTSPlayer({
   const [isMuted, setIsMuted] = useState(false)
   const audioRef = useRef<HTMLAudioElement>(null)
 
+  // Force update src when resolvedAudioUrl changes to handle dynamic updates
+  useEffect(() => {
+    if (audioRef.current && resolvedAudioUrl) {
+      console.log('TTSPlayer loading audio:', resolvedAudioUrl);
+      audioRef.current.src = resolvedAudioUrl;
+      audioRef.current.load();
+      setIsPlaying(false);
+      setCurrentTime(0);
+    }
+  }, [resolvedAudioUrl]);
+
   useEffect(() => {
     const audio = audioRef.current
     if (!audio) return
-
-    // Update audio source when URL changes
-    if (resolvedAudioUrl) {
-      audio.src = resolvedAudioUrl
-      audio.load()
-    }
 
     const handleTimeUpdate = () => {
       setCurrentTime(audio.currentTime)

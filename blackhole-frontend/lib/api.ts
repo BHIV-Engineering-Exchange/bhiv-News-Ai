@@ -156,6 +156,57 @@ async function runLegacyWorkflow(url: string): Promise<WorkflowResult> {
  * Maps the new backend response (BHIV + Pipeline) to the Frontend WorkflowResult interface
  */
 function mapToWorkflowResult(data: any): WorkflowResult {
+  // Check if we received the direct Insight Node response structure
+  if (data.data && data.data.scraped_data) {
+    const result = data.data
+    return {
+      success: data.success,
+      data: {
+        url: result.url || '',
+        timestamp: result.timestamp || new Date().toISOString(),
+        workflow_steps: result.workflow_steps || ['fetch', 'filter', 'verify', 'script', 'feedback'],
+        processing_time: result.processing_time || {
+          scraping: 1.0,
+          vetting: 1.0,
+          summarization: 1.0,
+          prompt_generation: 0.5,
+          video_search: 1.0
+        },
+        scraped_data: {
+          title: result.scraped_data.title || 'Untitled',
+          content_length: result.scraped_data.content_length || 500,
+          author: result.scraped_data.author || 'AI Agent',
+          date: result.scraped_data.date || new Date().toLocaleDateString()
+        },
+        vetting_results: {
+          authenticity_score: result.vetting_results?.authenticity_score || 0,
+          credibility_rating: result.vetting_results?.credibility_rating || 'Unknown',
+          is_reliable: result.vetting_results?.is_reliable || false
+        },
+        summary: {
+          text: result.summary?.text || 'Summary not available',
+          original_length: result.summary?.original_length || 0,
+          summary_length: result.summary?.summary_length || 0,
+          compression_ratio: result.summary?.compression_ratio || 0
+        },
+        video_prompt: {
+          prompt: result.video_prompt?.prompt || 'Create a news report about the event',
+          for_video_creation: result.video_prompt?.for_video_creation || false,
+          based_on_summary: result.video_prompt?.based_on_summary || false
+        },
+        sidebar_videos: result.sidebar_videos || {
+          videos: [],
+          total_found: 0,
+          ready_for_playback: false
+        },
+        total_processing_time: result.total_processing_time || 0,
+        workflow_complete: result.workflow_complete || false,
+        steps_completed: result.steps_completed || 0
+      }
+    }
+  }
+
+  // Fallback for Legacy/Seeya structure
   const seeya = data.seeya_compat || {}
   const pipeline = data.pipelineResult || {}
 
