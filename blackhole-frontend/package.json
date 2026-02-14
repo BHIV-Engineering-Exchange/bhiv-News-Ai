@@ -20,7 +20,7 @@
     "dotenv": "^17.2.4",
     "framer-motion": "^12.23.12",
     "lucide-react": "^0.294.0",
-    "next": "14.0.0",
+    "next": "14.2.35",
     "pg": "^8.18.0",
     "postcss": "^8.4.0",
     "react": "18.2.0",
@@ -35,7 +35,7 @@
     "@types/react-dom": "^18.2.0",
     "@types/uuid": "^10.0.0",
     "eslint": "^8.0.0",
-    "eslint-config-next": "14.0.0",
+    "eslint-config-next": "14.2.35",
     "prisma": "^6.19.2",
     "typescript": "5.9.2"
   },
