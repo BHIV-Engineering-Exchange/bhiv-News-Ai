@@ -1,0 +1,162 @@
+{
+  "contract_version": "1.0.0",
+  "contract_date": "2024-02-14",
+  "system_name": "News AI - Advanced News Analysis Platform",
+  "deployment_status": "production-ready",
+  "api_contract": {
+    "base_url": "https://news-ai-backend.onrender.com",
+    "version": "v1",
+    "authentication": {
+      "type": "api_key",
+      "header": "X-API-Key",
+      "required": false
+    },
+    "endpoints": {
+      "health": {
+        "path": "/health",
+        "method": "GET",
+        "description": "System health check",
+        "response": {
+          "status": "healthy",
+          "timestamp": "ISO 8601 datetime",
+          "services": "object with service status"
+        }
+      },
+      "scrape": {
+        "path": "/api/scrape",
+        "method": "POST",
+        "description": "Scrape content from URL",
+        "request": {
+          "url": "string (required)",
+          "max_pages": "integer (optional, default: 1)"
+        },
+        "response": {
+          "success": "boolean",
+          "data": "scraped content object"
+        }
+      },
+      "news_analysis": {
+        "path": "/api/news-analysis",
+        "method": "POST",
+        "description": "Comprehensive news analysis",
+        "request": {
+          "url": "string (required)",
+          "analysis_type": "string (optional)"
+        },
+        "response": {
+          "success": "boolean",
+          "analysis": "analysis results object"
+        }
+      },
+      "summarize": {
+        "path": "/api/summarize",
+        "method": "POST",
+        "description": "Generate summary of content",
+        "request": {
+          "content": "string (required)",
+          "max_length": "integer (optional)"
+        },
+        "response": {
+          "success": "boolean",
+          "summary": "string"
+        }
+      },
+      "scraped_news": {
+        "path": "/api/scraped-news",
+        "method": "GET/POST/DELETE",
+        "description": "Manage scraped news articles",
+        "GET_response": {
+          "success": "boolean",
+          "data": "array of news items",
+          "count": "integer"
+        },
+        "POST_request": "news item object",
+        "DELETE_request": {
+          "id": "string (required)"
+        }
+      }
+    }
+  },
+  "frontend_contract": {
+    "base_url": "https://news-ai-frontend.onrender.com",
+    "pages": {
+      "home": "/",
+      "news_feed": "/feed",
+      "search": "/search",
+      "analysis": "/analysis"
+    },
+    "features": {
+      "news_scraping": "enabled",
+      "ai_summarization": "enabled",
+      "video_search": "enabled",
+      "authenticity_check": "enabled",
+      "news_feed": "enabled",
+      "article_management": "enabled"
+    }
+  },
+  "data_persistence": {
+    "storage_type": "in-memory (production: database)",
+    "backup_strategy": "none (production: automated)",
+    "retention_policy": "session-based"
+  },
+  "security_requirements": {
+    "cors_enabled": true,
+    "rate_limiting": "basic",
+    "input_validation": "enabled",
+    "jwt_authentication": "planned",
+    "api_key_management": "planned"
+  },
+  "performance_sla": {
+    "response_time": "< 5 seconds",
+    "uptime_target": "99.9%",
+    "concurrent_users": "100+",
+    "api_rate_limit": "100 requests/minute"
+  },
+  "external_dependencies": {
+    "serper_api": "news search",
+    "youtube_api": "video search",
+    "twitter_api": "social content",
+    "openai_api": "ai processing (optional)",
+    "grok_api": "ai processing (optional)"
+  },
+  "deployment_specifications": {
+    "backend_platform": "Render (Python/FastAPI)",
+    "frontend_platform": "Render (Next.js)",
+    "database": "PostgreSQL (planned)",
+    "cdn": "Cloudflare (recommended)",
+    "monitoring": "Render built-in"
+  },
+  "testing_requirements": {
+    "unit_tests": "required",
+    "integration_tests": "required",
+    "api_tests": "required",
+    "load_tests": "recommended",
+    "security_tests": "recommended"
+  },
+  "documentation": {
+    "api_docs": "/docs (Swagger)",
+    "readme": "included",
+    "setup_guide": "included",
+    "demo_notes": "DEMO_NOTES.md"
+  },
+  "compliance_notes": {
+    "gdpr_compliance": "data minimization implemented",
+    "content_moderation": "basic filtering enabled",
+    "rate_limiting": "implemented",
+    "error_handling": "comprehensive"
+  },
+  "known_limitations": {
+    "current_storage": "in-memory (temporary)",
+    "authentication": "not implemented",
+    "production_database": "not connected",
+    "automated_backups": "not configured",
+    "external_monitoring": "basic level"
+  },
+  "next_steps": {
+    "database_integration": "high priority",
+    "authentication_system": "high priority",
+    "automated_testing": "medium priority",
+    "performance_optimization": "medium priority",
+    "security_hardening": "medium priority"
+  }
+}

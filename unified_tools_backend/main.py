@@ -1,9 +1,16 @@
-from fastapi import FastAPI, HTTPException, UploadFile, File, Form
+from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Depends, Security
 from fastapi.staticfiles import StaticFiles
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.responses import JSONResponse
 import httpx
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import Response
+from pydantic import BaseModel, validator
 from typing import List, Optional, Dict, Any
+import jwt
+from datetime import datetime, timedelta
+import secrets
 import pandas as pd
 import numpy as np
 import requests
@@ -36,6 +43,21 @@ if hasattr(sys.stderr, "reconfigure"):
 
 app = FastAPI(title="Unified Tools API", version="2.0.0")
 
+# Security Headers Middleware
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        response = await call_next(request)
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["X-XSS-Protection"] = "1; mode=block"
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https:;"
+        return response
+
+# Add security headers middleware
+app.add_middleware(SecurityHeadersMiddleware)
+
 # Enhanced CORS middleware for dashboard compatibility
 app.add_middleware(
     CORSMiddleware,
@@ -55,6 +77,41 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# JWT Security Configuration
+SECRET_KEY = os.getenv("JWT_SECRET_KEY", secrets.token_urlsafe(32))
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
+security = HTTPBearer()
+
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.utcnow() + expires_delta
+    else:
+        expire = datetime.utcnow() + timedelta(minutes=15)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+def verify_token(credentials: HTTPAuthorizationCredentials = Security(security)):
+    try:
+        payload = jwt.decode(credentials.credentials, SECRET_KEY, algorithms=[ALGORITHM])
+        return payload
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token has expired")
+    except jwt.JWTError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+# Optional security middleware for demo purposes
+def optional_security(credentials: Optional[HTTPAuthorizationCredentials] = Security(security)):
+    if credentials:
+        try:
+            return verify_token(credentials)
+        except HTTPException:
+            return None
+    return None
 
 # Mount Sankalp data directory for static files (audio, reports)
 try:
@@ -212,6 +269,12 @@ class SummarizingRequest(BaseModel):
     text: str
     max_length: int = 150
     style: str = "concise"
+
+    @validator('text')
+    def text_must_not_be_empty(cls, v):
+        if not v.strip():
+            raise ValueError('text must not be empty')
+        return v
 
 class VettingRequest(BaseModel):
     data: Dict[str, Any]
@@ -5720,11 +5783,15 @@ async def summarize_endpoint(request: SummarizingRequest):
         request.max_length,
         request.style
     )
-    return UnifiedResponse(
+    response_data = UnifiedResponse(
         success=True,
         data=result,
         message="Summarization completed successfully",
         timestamp=datetime.now().isoformat()
+    )
+    return JSONResponse(
+        content=response_data.dict(),
+        headers={"Content-Type": "application/json; charset=utf-8"}
     )
 
 @app.post("/api/vet")
@@ -6579,6 +6646,95 @@ async def get_sample_integration():
     except Exception as e:
         # Return empty structure on error
         return {"items": [], "error": str(e)}
+
+# Scraped News Management Endpoints
+from pydantic import BaseModel
+from typing import List, Optional
+import uuid
+
+class ScrapedNewsItem(BaseModel):
+    id: str
+    title: str
+    description: str
+    url: str
+    source: str
+    category: str
+    imageUrl: Optional[str] = None
+    publishedAt: str
+    readTime: Optional[str] = None
+    scrapedAt: str
+    scrapedData: Optional[dict] = None
+    summary: Optional[str] = None
+    insights: Optional[dict] = None
+    relatedVideos: Optional[List[dict]] = None
+
+# In-memory storage for scraped news (replace with database in production)
+scraped_news_db: List[ScrapedNewsItem] = []
+
+@app.get("/api/scraped-news")
+async def get_scraped_news():
+    """Get all scraped news articles"""
+    try:
+        return {
+            "success": True,
+            "data": scraped_news_db,
+            "count": len(scraped_news_db)
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+            "data": []
+        }
+
+@app.post("/api/scraped-news")
+async def save_scraped_news(item: ScrapedNewsItem):
+    """Save a scraped news article"""
+    try:
+        # Check if item with same URL already exists
+        existing_index = next((i for i, news in enumerate(scraped_news_db) if news.url == item.url), -1)
+        
+        if existing_index >= 0:
+            # Update existing item
+            scraped_news_db[existing_index] = item
+        else:
+            # Add new item
+            scraped_news_db.append(item)
+        
+        return {
+            "success": True,
+            "message": "News article saved successfully",
+            "data": item
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+@app.delete("/api/scraped-news")
+async def delete_scraped_news(id: str):
+    """Delete a scraped news article by ID"""
+    try:
+        global scraped_news_db
+        initial_count = len(scraped_news_db)
+        scraped_news_db = [item for item in scraped_news_db if item.id != id]
+        
+        if len(scraped_news_db) < initial_count:
+            return {
+                "success": True,
+                "message": "News article deleted successfully"
+            }
+        else:
+            return {
+                "success": False,
+                "error": "News article not found"
+            }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }
 
 # Health check
 @app.get("/health")
