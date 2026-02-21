@@ -83,6 +83,12 @@ SECRET_KEY = os.getenv("JWT_SECRET_KEY", secrets.token_urlsafe(32))
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
+# Demo credentials (for production, use proper user management)
+DEMO_USERS = {
+    "demo": "demo123",
+    "admin": "admin123"
+}
+
 security = HTTPBearer()
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
@@ -101,7 +107,7 @@ def verify_token(credentials: HTTPAuthorizationCredentials = Security(security))
         return payload
     except jwt.ExpiredSignatureError:
         raise HTTPException(status_code=401, detail="Token has expired")
-    except jwt.JWTError:
+    except Exception as e:
         raise HTTPException(status_code=401, detail="Invalid token")
 
 # Optional security middleware for demo purposes
@@ -5767,7 +5773,7 @@ async def validate_url_endpoint(request: Dict[str, Any]):
         )
 
 @app.post("/api/scrape")
-async def scrape_endpoint(request: ScrapingRequest):
+async def scrape_endpoint(request: ScrapingRequest, current_user: dict = Depends(verify_token)):
     result = await ScrapingService.scrape_website(request.url, request.max_pages)
     return UnifiedResponse(
         success=True,
@@ -5777,7 +5783,7 @@ async def scrape_endpoint(request: ScrapingRequest):
     )
 
 @app.post("/api/summarize")
-async def summarize_endpoint(request: SummarizingRequest):
+async def summarize_endpoint(request: SummarizingRequest, current_user: dict = Depends(verify_token)):
     result = await SummarizingService.summarize_text(
         request.text,
         request.max_length,
@@ -5852,7 +5858,7 @@ async def video_search_endpoint(request: VideoSearchRequest):
     )
 
 @app.post("/api/news-analysis")
-async def news_analysis_endpoint(request: NewsAnalysisRequest):
+async def news_analysis_endpoint(request: NewsAnalysisRequest, current_user: dict = Depends(verify_token)):
     result = await PipelineService.process_news_analysis(
         request.url,
         request.include_videos,
@@ -6668,17 +6674,20 @@ class ScrapedNewsItem(BaseModel):
     insights: Optional[dict] = None
     relatedVideos: Optional[List[dict]] = None
 
+from database import db_manager, get_db, DatabaseManager
+
 # In-memory storage for scraped news (replace with database in production)
-scraped_news_db: List[ScrapedNewsItem] = []
+# scraped_news_db: List[ScrapedNewsItem] = []
 
 @app.get("/api/scraped-news")
-async def get_scraped_news():
+async def get_scraped_news(db: DatabaseManager = Depends(get_db)):
     """Get all scraped news articles"""
     try:
+        news_items = db.get_scraped_news()
         return {
             "success": True,
-            "data": scraped_news_db,
-            "count": len(scraped_news_db)
+            "data": news_items,
+            "count": len(news_items)
         }
     except Exception as e:
         return {
@@ -6688,19 +6697,10 @@ async def get_scraped_news():
         }
 
 @app.post("/api/scraped-news")
-async def save_scraped_news(item: ScrapedNewsItem):
+async def save_scraped_news(item: ScrapedNewsItem, db: DatabaseManager = Depends(get_db)):
     """Save a scraped news article"""
     try:
-        # Check if item with same URL already exists
-        existing_index = next((i for i, news in enumerate(scraped_news_db) if news.url == item.url), -1)
-        
-        if existing_index >= 0:
-            # Update existing item
-            scraped_news_db[existing_index] = item
-        else:
-            # Add new item
-            scraped_news_db.append(item)
-        
+        db.add_scraped_news(item.dict())
         return {
             "success": True,
             "message": "News article saved successfully",
@@ -6713,14 +6713,10 @@ async def save_scraped_news(item: ScrapedNewsItem):
         }
 
 @app.delete("/api/scraped-news")
-async def delete_scraped_news(id: str):
+async def delete_scraped_news(id: str, db: DatabaseManager = Depends(get_db)):
     """Delete a scraped news article by ID"""
     try:
-        global scraped_news_db
-        initial_count = len(scraped_news_db)
-        scraped_news_db = [item for item in scraped_news_db if item.id != id]
-        
-        if len(scraped_news_db) < initial_count:
+        if db.delete_scraped_news(id):
             return {
                 "success": True,
                 "message": "News article deleted successfully"
@@ -6737,11 +6733,36 @@ async def delete_scraped_news(id: str):
         }
 
 # Health check
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+
+@app.post("/api/login")
+async def login(request: LoginRequest):
+    """Login endpoint to get JWT token"""
+    if request.username in DEMO_USERS and DEMO_USERS[request.username] == request.password:
+        access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        access_token = create_access_token(
+            data={"sub": request.username}, expires_delta=access_token_expires
+        )
+        return {
+            "access_token": access_token,
+            "token_type": "bearer",
+            "expires_in": ACCESS_TOKEN_EXPIRE_MINUTES * 60
+        }
+    else:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
 @app.get("/health")
 async def health_check():
     return {
         "status": "healthy",
         "timestamp": datetime.now().isoformat(),
+        "security": {
+            "jwt_enabled": True,
+            "demo_users": list(DEMO_USERS.keys()),
+            "token_expiry_minutes": ACCESS_TOKEN_EXPIRE_MINUTES
+        },
         "services": {
             "scraping": True,
             "summarizing": bool(BLACKHOLE_LLM_URL) or bool(GROK_API_KEY) or bool(OPENAI_API_KEY) or bool(OLLAMA_BASE_URL),
