@@ -69,6 +69,7 @@ app.add_middleware(
         "http://127.0.0.1:3001",
         "http://127.0.0.1:3002",
         "https://blackhole-infiverse-frontend.vercel.app",  # Vercel deployment
+        "https://news-ai-frontend.vercel.app",  # Current Vercel frontend URL
         "https://blackholeinfiverse-project-blackhole-frontend.onrender.com",  # Render frontend (if deployed)
         "null",  # For file:// origins
         "*"  # Allow all origins for development
