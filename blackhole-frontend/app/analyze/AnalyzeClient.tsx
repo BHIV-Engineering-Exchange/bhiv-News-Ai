@@ -6,7 +6,7 @@ import NewsAnalysisCard from '@/components/NewsAnalysisCard'
 import VideoPlayer from '@/components/VideoPlayer'
 import ResultsDisplay from '@/components/ResultsDisplay'
 import BackendStatus from '@/components/BackendStatus'
-import { checkBackendHealth } from '@/lib/api'
+import { checkBackendHealth, runUnifiedWorkflow, WorkflowResult } from '@/lib/api'
 import { saveScrapedNews, getSavedNews } from '@/lib/newsStorage'
 
 interface AnalysisResults {
@@ -63,7 +63,7 @@ interface AnalyzeClientProps {
 
 export default function AnalyzeClient({ initialUrl }: AnalyzeClientProps) {
   const [backendStatus, setBackendStatus] = useState<'online' | 'offline' | 'checking'>('checking')
-  const [analysisResults, setAnalysisResults] = useState<AnalysisResults | null>(null)
+  const [analysisResults, setAnalysisResults] = useState<WorkflowResult['data'] | null>(null)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [currentStep, setCurrentStep] = useState(0)
   const [analyzedUrl, setAnalyzedUrl] = useState<string>('')
@@ -160,7 +160,7 @@ export default function AnalyzeClient({ initialUrl }: AnalyzeClientProps) {
     }
   }
 
-  const handleAnalysisComplete = (results: AnalysisResults) => {
+  const handleAnalysisComplete = (results: WorkflowResult['data']) => {
     console.log('📊 Analysis results received:', {
       hasResults: !!results,
       resultKeys: results ? Object.keys(results) : [],
@@ -168,117 +168,34 @@ export default function AnalyzeClient({ initialUrl }: AnalyzeClientProps) {
       vettingResults: results?.vetting_results ? 'Present' : 'Missing',
       scrapedData: results?.scraped_data ? 'Present' : 'Missing',
       analyzedUrl: analyzedUrl,
-      resultsUrl: (results as any)?.url,
-      scrapedDataUrl: (results as any)?.scraped_data?.url,
+      resultsUrl: results?.url,
+      scrapedDataUrl: results?.url,
       fullResults: results,
     })
     setAnalysisResults(results)
     setIsAnalyzing(false)
     setCurrentStep(0)
+  }
 
-    // Extract URL from results if analyzedUrl is not set - check multiple locations
-    const articleUrl =
-      analyzedUrl ||
-      (results as any)?.url ||
-      (results as any)?.scraped_data?.url ||
-      (results as any)?.scraped_content?.url ||
-      ''
+  const handleAnalysisStart = async (url: string) => {
+    setAnalyzedUrl(url);
+    setIsAnalyzing(true);
+    setAnalysisResults(null);
+    setCurrentStep(0);
 
-    console.log('🔍 URL extraction:', {
-      analyzedUrl,
-      resultsUrl: (results as any)?.url,
-      scrapedDataUrl: (results as any)?.scraped_data?.url,
-      finalArticleUrl: articleUrl,
-      hasArticleUrl: !!articleUrl,
-    })
-
-    // Save scraped news to localStorage for the feed
-    if (results && articleUrl && articleUrl.trim() !== '') {
-      try {
-        console.log('💾 Attempting to save article:', {
-          url: articleUrl,
-          hasResults: !!results,
-          resultsStructure: Object.keys(results),
-        })
-
-        const saved = saveScrapedNews(results, articleUrl)
-        if (saved) {
-          console.log('✅ News article saved to feed:', saved.title, {
-            category: saved.category,
-            imageUrl: saved.imageUrl,
-            hasImage: !!saved.imageUrl,
-            id: saved.id,
-            url: saved.url,
-          })
-          // Show notification
-          setShowSavedNotification(true)
-          setTimeout(() => setShowSavedNotification(false), 5000)
-          // Refresh feed videos
-          loadFeedVideos()
-
-          // Force refresh the feed page if it's open
-          window.dispatchEvent(new CustomEvent('newsArticleSaved', { detail: saved }))
-
-          // Also trigger a storage event for cross-tab sync
-          if (typeof window !== 'undefined' && window.localStorage) {
-            window.localStorage.setItem('newsFeedUpdated', Date.now().toString())
-          }
-        } else {
-          console.warn('⚠️ Failed to save article to feed - saveScrapedNews returned null', {
-            url: articleUrl,
-            results: results,
-          })
-        }
-      } catch (error) {
-        console.error('❌ Error saving news to feed:', error)
+    try {
+      const results = await runUnifiedWorkflow(url);
+      if (results.success && results.data) {
+        handleAnalysisComplete(results.data);
+      } else {
+        console.error('Analysis failed:', results.message);
+        setIsAnalyzing(false);
       }
-    } else {
-      console.warn('⚠️ Cannot save article - missing data:', {
-        hasResults: !!results,
-        hasUrl: !!articleUrl,
-        articleUrlValue: articleUrl,
-        analyzedUrl: analyzedUrl,
-        resultsUrl: (results as any)?.url,
-        scrapedDataUrl: (results as any)?.scraped_data?.url,
-      })
-
-      // Try to save anyway if we have results, even without URL (use a fallback)
-      if (results) {
-        const fallbackUrl = (results as any)?.url || `scraped-${Date.now()}`
-        console.log('🔄 Attempting save with fallback URL:', fallbackUrl)
-        try {
-          const saved = saveScrapedNews(results, fallbackUrl)
-          if (saved) {
-            console.log('✅ Article saved with fallback URL:', saved.title)
-            setShowSavedNotification(true)
-            setTimeout(() => setShowSavedNotification(false), 5000)
-            loadFeedVideos()
-            window.dispatchEvent(new CustomEvent('newsArticleSaved', { detail: saved }))
-            if (typeof window !== 'undefined' && window.localStorage) {
-              window.localStorage.setItem('newsFeedUpdated', Date.now().toString())
-            }
-          }
-        } catch (error) {
-          console.error('❌ Error saving with fallback URL:', error)
-        }
-      }
+    } catch (error) {
+      console.error('Analysis failed:', error);
+      setIsAnalyzing(false);
     }
-  }
-
-  const handleAnalysisStart = (url: string) => {
-    setAnalyzedUrl(url)
-    setIsAnalyzing(true)
-    setAnalysisResults(null)
-    setCurrentStep(0)
-
-    // Simulate workflow steps for UI feedback
-    const steps = ['scraping', 'vetting', 'summarization', 'prompt_generation', 'video_search']
-    steps.forEach((_, index) => {
-      setTimeout(() => {
-        setCurrentStep(index + 1)
-      }, (index + 1) * 2000)
-    })
-  }
+  };
 
   const urlParam = initialUrl || undefined
 
@@ -315,7 +232,6 @@ export default function AnalyzeClient({ initialUrl }: AnalyzeClientProps) {
                 {/* News Analysis Card */}
                 <NewsAnalysisCard
                   onAnalysisStart={handleAnalysisStart}
-                  onAnalysisComplete={handleAnalysisComplete}
                   backendOnline={backendStatus === 'online'}
                   isAnalyzing={isAnalyzing}
                   currentStep={currentStep}

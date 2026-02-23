@@ -24,8 +24,25 @@ export interface WorkflowResult {
       authenticity_score: number
       credibility_rating: string
       is_reliable: boolean
+      reliability_status?: string
+      analysis_method?: string
+      content_type?: string
+      guidance?: string
+      analysis_version?: string
+      authenticity_level?: string
+      confidence?: number
+      recommendation?: string
+      scoring_breakdown?: {
+        source_credibility: number
+        content_analysis: number
+        cross_verification: number
+        bias_analysis: number
+      }
+      factors_detected?: string[]
+      warning_signs?: string[]
+      analyzed_at?: string
     }
-    summary: {
+    summary: string | {
       text: string
       original_length: number
       summary_length: number
@@ -35,6 +52,9 @@ export interface WorkflowResult {
       prompt: string
       for_video_creation: boolean
       based_on_summary: boolean
+      prompt_length?: number
+      estimated_runtime_ms?: number
+      model_used?: string
     }
     sidebar_videos: {
       videos: Array<{
@@ -43,9 +63,12 @@ export interface WorkflowResult {
         thumbnail?: string
         duration?: string
         source: string
+        demo_video?: boolean
+        relevance_score?: number
       }>
       total_found: number
       ready_for_playback: boolean
+      content_source?: string
     }
     total_processing_time: number
     workflow_complete: boolean
@@ -181,7 +204,19 @@ function mapToWorkflowResult(data: any): WorkflowResult {
         vetting_results: {
           authenticity_score: result.vetting_results?.authenticity_score || 0,
           credibility_rating: result.vetting_results?.credibility_rating || 'Unknown',
-          is_reliable: result.vetting_results?.is_reliable || false
+          is_reliable: result.vetting_results?.is_reliable || false,
+          reliability_status: result.vetting_results?.reliability_status,
+          analysis_method: result.vetting_results?.analysis_method,
+          content_type: result.vetting_results?.content_type,
+          guidance: result.vetting_results?.guidance,
+          analysis_version: result.vetting_results?.analysis_version,
+          authenticity_level: result.vetting_results?.authenticity_level,
+          confidence: result.vetting_results?.confidence,
+          recommendation: result.vetting_results?.recommendation,
+          scoring_breakdown: result.vetting_results?.scoring_breakdown,
+          factors_detected: result.vetting_results?.factors_detected,
+          warning_signs: result.vetting_results?.warning_signs,
+          analyzed_at: result.vetting_results?.analyzed_at
         },
         summary: {
           text: result.summary?.text || 'Summary not available',
@@ -192,12 +227,16 @@ function mapToWorkflowResult(data: any): WorkflowResult {
         video_prompt: {
           prompt: result.video_prompt?.prompt || 'Create a news report about the event',
           for_video_creation: result.video_prompt?.for_video_creation || false,
-          based_on_summary: result.video_prompt?.based_on_summary || false
+          based_on_summary: result.video_prompt?.based_on_summary || false,
+          prompt_length: result.video_prompt?.prompt_length,
+          estimated_runtime_ms: result.video_prompt?.estimated_runtime_ms,
+          model_used: result.video_prompt?.model_used
         },
         sidebar_videos: result.sidebar_videos || {
           videos: [],
           total_found: 0,
-          ready_for_playback: false
+          ready_for_playback: false,
+          content_source: undefined
         },
         total_processing_time: result.total_processing_time || 0,
         workflow_complete: result.workflow_complete || false,

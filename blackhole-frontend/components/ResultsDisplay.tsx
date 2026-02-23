@@ -3,63 +3,17 @@
 import { CheckCircle, AlertTriangle, FileText, Lightbulb, Clock, User, Calendar, Globe, Shield, Video } from 'lucide-react'
 import AIVideoGenerator from './AIVideoGenerator'
 
+import { WorkflowResult } from '@/lib/api'
+
 interface ResultsDisplayProps {
-  results: {
-    scraped_data?: {
-      title?: string
-      content_length?: number
-      author?: string
-      date?: string
-      [key: string]: any
-    }
-    vetting_results?: {
-      authenticity_score?: number
-      credibility_rating?: string
-      is_reliable?: boolean
-      [key: string]: any
-    }
-    summary?: {
-      text?: string
-      original_length?: number
-      summary_length?: number
-      compression_ratio?: number
-      [key: string]: any
-    } | string
-    video_prompt?: {
-      prompt?: string
-      for_video_creation?: boolean
-      based_on_summary?: boolean
-      [key: string]: any
-    }
-    sidebar_videos?: {
-      videos?: Array<{
-        title?: string
-        url?: string
-        thumbnail?: string
-        duration?: string
-        source?: string
-        [key: string]: any
-      }>
-      total_found?: number
-      ready_for_playback?: boolean
-      content_source?: string
-      [key: string]: any
-    }
-    ai_video_generation?: {
-      success?: boolean
-      video_data?: any
-      generation_method?: string
-      error?: string
-      [key: string]: any
-    }
-    total_processing_time?: number
-    workflow_complete?: boolean
-    steps_completed?: number
-    [key: string]: any
-  }
+  results: WorkflowResult['data']
 }
 
 export default function ResultsDisplay({ results }: ResultsDisplayProps) {
+  if (!results) {
+    return null;
+  }
+
   const getAuthenticityColor = (score: number) => {
     if (score >= 80) return 'text-green-400'
     if (score >= 60) return 'text-yellow-400'
@@ -118,14 +72,14 @@ export default function ResultsDisplay({ results }: ResultsDisplayProps) {
           <div>
             <h2 className="text-2xl font-bold text-green-400">Analysis Complete!</h2>
             <p className="text-green-300">
-              Processed in {getSafeNumber(results.total_processing_time, 1.4).toFixed(1)}s • {getSafeNumber(results.steps_completed, 5)}/5 steps completed
+              Processed in {getSafeNumber(results?.total_processing_time, 1.4).toFixed(1)}s • {getSafeNumber(results?.steps_completed, 5)}/5 steps completed
             </p>
           </div>
         </div>
       </div>
 
       {/* Scraped Data */}
-      {results.scraped_data && (
+      {results?.scraped_data && (
         <div className="glass-effect rounded-xl p-6 border border-white/20">
           <div className="flex items-center space-x-3 mb-4">
             <Globe className="w-6 h-6 text-blue-400" />
@@ -135,7 +89,7 @@ export default function ResultsDisplay({ results }: ResultsDisplayProps) {
           <div className="space-y-4">
             <div>
               <h4 className="text-lg font-medium text-white mb-2">
-                {getSafeString(results.scraped_data.title, 'News Article')}
+                {getSafeString(results?.scraped_data.title, 'News Article')}
               </h4>
             </div>
             
@@ -143,21 +97,21 @@ export default function ResultsDisplay({ results }: ResultsDisplayProps) {
               <div className="flex items-center space-x-2">
                 <User className="w-4 h-4 text-gray-400" />
                 <span className="text-gray-300">
-                  <strong>Author:</strong> {getSafeString(results.scraped_data.author, 'Unknown')}
+                  <strong>Author:</strong> {getSafeString(results?.scraped_data.author, 'Unknown')}
                 </span>
               </div>
               
               <div className="flex items-center space-x-2">
                 <Calendar className="w-4 h-4 text-gray-400" />
                 <span className="text-gray-300">
-                  <strong>Date:</strong> {getSafeString(results.scraped_data.date, 'Unknown')}
+                  <strong>Date:</strong> {getSafeString(results?.scraped_data.date, 'Unknown')}
                 </span>
               </div>
               
               <div className="flex items-center space-x-2">
                 <FileText className="w-4 h-4 text-gray-400" />
                 <span className="text-gray-300">
-                  <strong>Content:</strong> {getSafeNumber(results.scraped_data.content_length, 0).toLocaleString()} characters
+                  <strong>Content:</strong> {getSafeNumber(results?.scraped_data.content_length, 0).toLocaleString()} characters
                 </span>
               </div>
             </div>
@@ -166,22 +120,22 @@ export default function ResultsDisplay({ results }: ResultsDisplayProps) {
       )}
 
       {/* Vetting Results */}
-      {results.vetting_results && (
-        <div className={`glass-effect rounded-xl p-6 border ${getAuthenticityBg(getSafeNumber(results.vetting_results.authenticity_score, 88))}`}>
+      {results?.vetting_results && (
+        <div className={`glass-effect rounded-xl p-6 border ${getAuthenticityBg(getSafeNumber(results?.vetting_results.authenticity_score, 88))}`}>
           <div className="flex items-center space-x-3 mb-4">
             <Shield className="w-6 h-6 text-orange-400" />
             <h3 className="text-xl font-semibold text-white">⚠️ Authenticity Verification</h3>
-            {results.vetting_results.analysis_method && (
+            {results?.vetting_results.analysis_method && (
               <span className="text-xs bg-purple-500/20 text-purple-300 px-2 py-1 rounded-full">
-                {results.vetting_results.analysis_method === 'enhanced_rule_based' ? '🛡️ Enhanced Analysis' : 
-                 results.vetting_results.analysis_method === 'ai_analysis' ? '🤖 AI Analysis' : 
+                {results?.vetting_results.analysis_method === 'enhanced_rule_based' ? '🛡️ Enhanced Analysis' : 
+                 results?.vetting_results.analysis_method === 'ai_analysis' ? '🤖 AI Analysis' : 
                  '📊 Hybrid Analysis'}
               </span>
             )}
           </div>
           
           {/* Listing Page Detection Alert */}
-          {results.vetting_results.content_type === 'listing_page' && (
+          {results?.vetting_results.content_type === 'listing_page' && (
             <div className="mb-4 p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
               <div className="flex items-center space-x-2 text-yellow-400 mb-2">
                 <AlertTriangle className="w-5 h-5" />
@@ -191,9 +145,9 @@ export default function ResultsDisplay({ results }: ResultsDisplayProps) {
                 This appears to be a news homepage or listing page rather than a specific article. 
                 For more accurate authenticity analysis, please use direct article URLs.
               </p>
-              {results.vetting_results.guidance && (
+              {results?.vetting_results.guidance && (
                 <p className="text-yellow-200 text-sm mt-2 italic">
-                  💡 {results.vetting_results.guidance}
+                  💡 {results?.vetting_results.guidance}
                 </p>
               )}
             </div>
@@ -203,18 +157,18 @@ export default function ResultsDisplay({ results }: ResultsDisplayProps) {
             {/* Authenticity Score */}
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
-                {getReliabilityIcon(Boolean(results.vetting_results.is_reliable))}
+                {getReliabilityIcon(Boolean(results?.vetting_results.is_reliable))}
                 <span className="text-lg font-medium text-white">Authenticity Score</span>
-                {results.vetting_results.content_type && (
+                {results?.vetting_results.content_type && (
                   <span className="text-xs bg-blue-500/20 text-blue-300 px-2 py-1 rounded-full">
-                    {results.vetting_results.content_type === 'individual_article' ? '📄 Article' : 
-                     results.vetting_results.content_type === 'listing_page' ? '📋 Listing' : 
+                    {results?.vetting_results.content_type === 'individual_article' ? '📄 Article' : 
+                     results?.vetting_results.content_type === 'listing_page' ? '📋 Listing' : 
                      '📰 Content'}
                   </span>
                 )}
               </div>
-              <div className={`text-3xl font-bold ${getAuthenticityColor(getSafeNumber(results.vetting_results.authenticity_score, 88))}`}>
-                {getSafeNumber(results.vetting_results.authenticity_score, 88)}/100
+              <div className={`text-3xl font-bold ${getAuthenticityColor(getSafeNumber(results?.vetting_results.authenticity_score, 88))}`}>
+                {getSafeNumber(results?.vetting_results.authenticity_score, 88)}/100
               </div>
             </div>
             
@@ -222,31 +176,31 @@ export default function ResultsDisplay({ results }: ResultsDisplayProps) {
             <div className="w-full bg-gray-700 rounded-full h-3">
               <div 
                 className={`h-3 rounded-full transition-all duration-1000 ${
-                  getSafeNumber(results.vetting_results.authenticity_score, 88) >= 80 ? 'bg-green-500' :
-                  getSafeNumber(results.vetting_results.authenticity_score, 88) >= 60 ? 'bg-yellow-500' : 'bg-red-500'
+                  getSafeNumber(results?.vetting_results.authenticity_score, 88) >= 80 ? 'bg-green-500' :
+                  getSafeNumber(results?.vetting_results.authenticity_score, 88) >= 60 ? 'bg-yellow-500' : 'bg-red-500'
                 }`}
-                style={{ width: `${getSafeNumber(results.vetting_results.authenticity_score, 88)}%` }}
+                style={{ width: `${getSafeNumber(results?.vetting_results.authenticity_score, 88)}%` }}
               ></div>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <span className="text-gray-400">Credibility Rating:</span>
-                <span className={`ml-2 font-semibold ${getAuthenticityColor(getSafeNumber(results.vetting_results.authenticity_score, 88))}`}>
-                  {getSafeString(results.vetting_results.credibility_rating, 'High')}
+                <span className={`ml-2 font-semibold ${getAuthenticityColor(getSafeNumber(results?.vetting_results.authenticity_score, 88))}`}>
+                  {getSafeString(results?.vetting_results.credibility_rating, 'High')}
                 </span>
               </div>
               
               <div>
                 <span className="text-gray-400">Reliability Status:</span>
-                <span className={`ml-2 font-semibold ${results.vetting_results.reliability_status === 'Reliable' || results.vetting_results.reliability_status === 'Mostly Reliable' ? 'text-green-400' : results.vetting_results.reliability_status === 'Questionable' ? 'text-yellow-400' : 'text-red-400'}`}>
-                  {getSafeString(results.vetting_results.reliability_status, Boolean(results.vetting_results.is_reliable) ? 'Reliable' : 'Questionable')}
+                <span className={`ml-2 font-semibold ${results?.vetting_results.reliability_status === 'Reliable' || results?.vetting_results.reliability_status === 'Mostly Reliable' ? 'text-green-400' : results?.vetting_results.reliability_status === 'Questionable' ? 'text-yellow-400' : 'text-red-400'}`}>
+                  {getSafeString(results?.vetting_results.reliability_status, Boolean(results?.vetting_results.is_reliable) ? 'Reliable' : 'Questionable')}
                 </span>
               </div>
             </div>
             
             {/* Enhanced Analysis Details */}
-            {results.vetting_results.analysis_version && (
+            {results?.vetting_results.analysis_version && (
               <div className="mt-4 space-y-3">
                 <div className="bg-black/20 rounded-lg p-4">
                   <h4 className="text-sm font-semibold text-gray-300 mb-2">AI Analysis</h4>
@@ -254,26 +208,26 @@ export default function ResultsDisplay({ results }: ResultsDisplayProps) {
                     <p className="mb-2">
                       <span className="font-medium">Authenticity Level:</span> 
                       <span className={`ml-1 font-semibold ${
-                        results.vetting_results.authenticity_level === 'VERY_HIGH' || results.vetting_results.authenticity_level === 'HIGH' ? 'text-green-400' :
-                        results.vetting_results.authenticity_level === 'MEDIUM_HIGH' || results.vetting_results.authenticity_level === 'MEDIUM' ? 'text-yellow-400' :
+                        results?.vetting_results.authenticity_level === 'VERY_HIGH' || results?.vetting_results.authenticity_level === 'HIGH' ? 'text-green-400' :
+                        results?.vetting_results.authenticity_level === 'MEDIUM_HIGH' || results?.vetting_results.authenticity_level === 'MEDIUM' ? 'text-yellow-400' :
                         'text-red-400'
                       }`}>
-                        {getSafeString(results.vetting_results.authenticity_level, 'MEDIUM').replace('_', ' ')}
+                        {getSafeString(results?.vetting_results.authenticity_level, 'MEDIUM').replace('_', ' ')}
                       </span>
                     </p>
                     <p className="mb-2">
                       <span className="font-medium">Confidence:</span>
-                      <span className="ml-1">{Math.round(getSafeNumber(results.vetting_results.confidence, 0.6) * 100)}%</span>
+                      <span className="ml-1">{Math.round(getSafeNumber(results?.vetting_results.confidence, 0.6) * 100)}%</span>
                     </p>
                     <p>
                       <span className="font-medium">Recommendation:</span>
-                      <span className="ml-1 italic">{getSafeString(results.vetting_results.recommendation, 'Verify with additional sources')}</span>
+                      <span className="ml-1 italic">{getSafeString(results?.vetting_results.recommendation, 'Verify with additional sources')}</span>
                     </p>
                   </div>
                 </div>
                 
                 {/* Scoring Breakdown */}
-                {results.vetting_results.scoring_breakdown && (
+                {results?.vetting_results.scoring_breakdown && (
                   <div className="bg-black/20 rounded-lg p-4">
                     <h4 className="text-sm font-semibold text-gray-300 mb-3">Detailed Scoring Breakdown</h4>
                     <div className="space-y-3">
@@ -283,11 +237,11 @@ export default function ResultsDisplay({ results }: ResultsDisplayProps) {
                           <div className="w-20 bg-gray-600 rounded-full h-2">
                             <div 
                               className="bg-blue-500 h-2 rounded-full transition-all duration-500"
-                              style={{ width: `${(getSafeNumber(results.vetting_results.scoring_breakdown.source_credibility, 0) / 25) * 100}%` }}
+                              style={{ width: `${(getSafeNumber(results?.vetting_results.scoring_breakdown.source_credibility, 0) / 25) * 100}%` }}
                             ></div>
                           </div>
                           <span className="text-sm font-medium text-white min-w-[50px]">
-                            {getSafeNumber(results.vetting_results.scoring_breakdown.source_credibility, 0).toFixed(1)}/25
+                            {getSafeNumber(results?.vetting_results.scoring_breakdown.source_credibility, 0).toFixed(1)}/25
                           </span>
                         </div>
                       </div>
@@ -298,11 +252,11 @@ export default function ResultsDisplay({ results }: ResultsDisplayProps) {
                           <div className="w-20 bg-gray-600 rounded-full h-2">
                             <div 
                               className="bg-green-500 h-2 rounded-full transition-all duration-500"
-                              style={{ width: `${(getSafeNumber(results.vetting_results.scoring_breakdown.content_analysis, 0) / 40) * 100}%` }}
+                              style={{ width: `${(getSafeNumber(results?.vetting_results.scoring_breakdown.content_analysis, 0) / 40) * 100}%` }}
                             ></div>
                           </div>
                           <span className="text-sm font-medium text-white min-w-[50px]">
-                            {getSafeNumber(results.vetting_results.scoring_breakdown.content_analysis, 0).toFixed(1)}/40
+                            {getSafeNumber(results?.vetting_results.scoring_breakdown.content_analysis, 0).toFixed(1)}/40
                           </span>
                         </div>
                       </div>
@@ -313,11 +267,11 @@ export default function ResultsDisplay({ results }: ResultsDisplayProps) {
                           <div className="w-20 bg-gray-600 rounded-full h-2">
                             <div 
                               className="bg-yellow-500 h-2 rounded-full transition-all duration-500"
-                              style={{ width: `${(getSafeNumber(results.vetting_results.scoring_breakdown.cross_verification, 0) / 20) * 100}%` }}
+                              style={{ width: `${(getSafeNumber(results?.vetting_results.scoring_breakdown.cross_verification, 0) / 20) * 100}%` }}
                             ></div>
                           </div>
                           <span className="text-sm font-medium text-white min-w-[50px]">
-                            {getSafeNumber(results.vetting_results.scoring_breakdown.cross_verification, 0).toFixed(1)}/20
+                            {getSafeNumber(results?.vetting_results.scoring_breakdown.cross_verification, 0).toFixed(1)}/20
                           </span>
                         </div>
                       </div>
@@ -328,24 +282,24 @@ export default function ResultsDisplay({ results }: ResultsDisplayProps) {
                           <div className="w-20 bg-gray-600 rounded-full h-2">
                             <div 
                               className="bg-purple-500 h-2 rounded-full transition-all duration-500"
-                              style={{ width: `${(getSafeNumber(results.vetting_results.scoring_breakdown.bias_analysis, 0) / 15) * 100}%` }}
+                              style={{ width: `${(getSafeNumber(results?.vetting_results.scoring_breakdown.bias_analysis, 0) / 15) * 100}%` }}
                             ></div>
                           </div>
                           <span className="text-sm font-medium text-white min-w-[50px]">
-                            {getSafeNumber(results.vetting_results.scoring_breakdown.bias_analysis, 0).toFixed(1)}/15
+                            {getSafeNumber(results?.vetting_results.scoring_breakdown.bias_analysis, 0).toFixed(1)}/15
                           </span>
                         </div>
                       </div>
                     </div>
                     
                     {/* Analysis Factors */}
-                    {(results.vetting_results.factors_detected || results.vetting_results.warning_signs) && (
+                    {(results?.vetting_results.factors_detected || results?.vetting_results.warning_signs) && (
                       <div className="mt-4 pt-3 border-t border-gray-600">
-                        {results.vetting_results.factors_detected && results.vetting_results.factors_detected.length > 0 && (
+                        {results?.vetting_results.factors_detected && results?.vetting_results.factors_detected.length > 0 && (
                           <div className="mb-2">
                             <span className="text-xs text-green-400 font-medium">Positive Factors:</span>
                             <div className="flex flex-wrap gap-1 mt-1">
-                              {results.vetting_results.factors_detected.map((factor: string, index: number) => (
+                              {results?.vetting_results.factors_detected.map((factor: string, index: number) => (
                                 <span key={index} className="text-xs bg-green-500/20 text-green-300 px-2 py-1 rounded-full">
                                   {factor}
                                 </span>
@@ -354,11 +308,11 @@ export default function ResultsDisplay({ results }: ResultsDisplayProps) {
                           </div>
                         )}
                         
-                        {results.vetting_results.warning_signs && results.vetting_results.warning_signs.length > 0 && (
+                        {results?.vetting_results.warning_signs && results?.vetting_results.warning_signs.length > 0 && (
                           <div>
                             <span className="text-xs text-yellow-400 font-medium">Warning Signs:</span>
                             <div className="flex flex-wrap gap-1 mt-1">
-                              {results.vetting_results.warning_signs.map((warning: string, index: number) => (
+                              {results?.vetting_results.warning_signs.map((warning: string, index: number) => (
                                 <span key={index} className="text-xs bg-yellow-500/20 text-yellow-300 px-2 py-1 rounded-full">
                                   {warning}
                                 </span>
@@ -372,8 +326,8 @@ export default function ResultsDisplay({ results }: ResultsDisplayProps) {
                 )}
                 
                 <div className="text-xs text-gray-500 text-center">
-                  Analysis Version: {getSafeString(results.vetting_results.analysis_version, 'enhanced_v2.0')} • 
-                  Analyzed at: {getSafeString(results.vetting_results.analyzed_at, 'N/A')}
+                  Analysis Version: {getSafeString(results?.vetting_results.analysis_version, 'enhanced_v2.0')} • 
+                  Analyzed at: {getSafeString(results?.vetting_results.analyzed_at, 'N/A')}
                 </div>
               </div>
             )}
@@ -382,7 +336,7 @@ export default function ResultsDisplay({ results }: ResultsDisplayProps) {
       )}
 
       {/* Summary */}
-      {results.summary && (
+      {results?.summary && (
         <div className="glass-effect rounded-xl p-6 border border-white/20">
           <div className="flex items-center space-x-3 mb-4">
             <FileText className="w-6 h-6 text-green-400" />
@@ -393,30 +347,30 @@ export default function ResultsDisplay({ results }: ResultsDisplayProps) {
             {/* Summary Text */}
             <div className="bg-black/30 rounded-lg p-4 border-l-4 border-green-500">
               <p className="text-gray-200 leading-relaxed text-lg">
-                &ldquo;{getSafeString(results.summary, 'Summary generated successfully')}&rdquo;
+                &ldquo;{getSafeString(results?.summary, 'Summary generated successfully')}&rdquo;
               </p>
             </div>
             
             {/* Summary Stats */}
-            {typeof results.summary === 'object' && results.summary && (
+            {typeof results?.summary === 'object' && results?.summary && (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                 <div className="text-center p-3 bg-black/20 rounded-lg">
                   <div className="text-2xl font-bold text-blue-400">
-                    {getSafeNumber(results.summary.original_length, 0).toLocaleString()}
+                    {getSafeNumber(results?.summary.original_length, 0).toLocaleString()}
                   </div>
                   <div className="text-gray-400">Original Characters</div>
                 </div>
                 
                 <div className="text-center p-3 bg-black/20 rounded-lg">
                   <div className="text-2xl font-bold text-green-400">
-                    {getSafeNumber(results.summary.summary_length, 0).toLocaleString()}
+                    {getSafeNumber(results?.summary.summary_length, 0).toLocaleString()}
                   </div>
                   <div className="text-gray-400">Summary Characters</div>
                 </div>
                 
                 <div className="text-center p-3 bg-black/20 rounded-lg">
                   <div className="text-2xl font-bold text-purple-400">
-                    {Math.round(getSafeNumber(results.summary.compression_ratio, 0.3) * 100)}%
+                    {Math.round(getSafeNumber(results?.summary.compression_ratio, 0.3) * 100)}%
                   </div>
                   <div className="text-gray-400">Compression Ratio</div>
                 </div>
@@ -427,7 +381,7 @@ export default function ResultsDisplay({ results }: ResultsDisplayProps) {
       )}
 
       {/* Video Prompt */}
-      {results.video_prompt && (
+      {results?.video_prompt && (
         <div className="glass-effect rounded-xl p-6 border border-white/20">
           <div className="flex items-center space-x-3 mb-4">
             <Lightbulb className="w-6 h-6 text-yellow-400" />
@@ -437,15 +391,34 @@ export default function ResultsDisplay({ results }: ResultsDisplayProps) {
           <div className="space-y-4">
             <div className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-lg p-4 border border-purple-500/30">
               <p className="text-gray-200 leading-relaxed">
-                {getSafeString(results.video_prompt.prompt, 'Video prompt generated successfully')}
+                {getSafeString(results?.video_prompt.prompt, 'Video prompt generated successfully')}
               </p>
             </div>
             
-            <div className="flex items-center space-x-4 text-sm text-gray-400">
-              <span>✅ Optimized for video creation</span>
-              <span>✅ Based on news summary</span>
-              <span>✅ Ready for AI video generation</span>
-            </div>
+            {typeof results?.video_prompt === 'object' && results?.video_prompt && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                <div className="text-center p-3 bg-black/20 rounded-lg">
+                  <div className="text-2xl font-bold text-blue-400">
+                    {getSafeNumber(results?.video_prompt.prompt_length, 0).toLocaleString()}
+                  </div>
+                  <div className="text-gray-400">Prompt Characters</div>
+                </div>
+                
+                <div className="text-center p-3 bg-black/20 rounded-lg">
+                  <div className="text-2xl font-bold text-green-400">
+                    {getSafeNumber(results?.video_prompt.estimated_runtime_ms, 0) / 1000}s
+                  </div>
+                  <div className="text-gray-400">Est. Runtime</div>
+                </div>
+                
+                <div className="text-center p-3 bg-black/20 rounded-lg">
+                  <div className="text-2xl font-bold text-purple-400">
+                    {getSafeString(results?.video_prompt.model_used, 'N/A')}
+                  </div>
+                  <div className="text-gray-400">Model Used</div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

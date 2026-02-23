@@ -6,7 +6,6 @@ import { runUnifiedWorkflow } from '@/lib/api'
 
 interface NewsAnalysisCardProps {
   onAnalysisStart: (url: string) => void
-  onAnalysisComplete: (results: any) => void
   backendOnline: boolean
   isAnalyzing: boolean
   currentStep: number
@@ -23,7 +22,6 @@ const steps = [
 
 export default function NewsAnalysisCard({ 
   onAnalysisStart, 
-  onAnalysisComplete, 
   backendOnline, 
   isAnalyzing, 
   currentStep,
@@ -52,42 +50,6 @@ export default function NewsAnalysisCard({
 
     setError(null)
     onAnalysisStart(url)
-
-    try {
-      console.log('🚀 Starting analysis for URL:', url)
-      const response = await runUnifiedWorkflow(url)
-      console.log('📥 Analysis response received:', {
-        success: response.success,
-        message: response.message,
-        hasData: !!response.data,
-        dataKeys: response.data ? Object.keys(response.data) : []
-      })
-      
-      if (response.success) {
-        console.log('✅ Analysis successful!')
-        if (response.data) {
-          console.log('📊 Response data structure:', Object.keys(response.data))
-          onAnalysisComplete(response.data)
-        } else {
-          console.warn('⚠️ Success but no data received')
-          setError('Analysis completed but no data was returned')
-          onAnalysisComplete(null)
-        }
-      } else {
-        const errorMessage = response.message || 'Analysis failed'
-        console.error('❌ Analysis failed:', errorMessage)
-        console.error('📋 Full error response:', response)
-        setError(errorMessage)
-        onAnalysisComplete(null)
-      }
-    } catch (err: any) {
-      console.error('💥 Analysis error caught:', err)
-      console.error('🔍 Error type:', typeof err)
-      console.error('📝 Error message:', err.message)
-      const errorMessage = err.message || 'Failed to analyze news'
-      setError(errorMessage)
-      onAnalysisComplete(null)
-    }
   }
 
   const getStepStatus = (stepId: number) => {
