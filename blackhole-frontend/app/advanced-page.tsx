@@ -18,28 +18,7 @@ import {
   TrendingUp
 } from 'lucide-react'
 
-// Mock API functions (replace with actual API calls)
-const checkBackendHealth = async () => {
-  try {
-    const response = await fetch('http://localhost:8000/health')
-    return response.ok
-  } catch {
-    return false
-  }
-}
-
-const runUnifiedWorkflow = async (url: string) => {
-  try {
-    const response = await fetch('http://localhost:8000/api/unified-news-workflow', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url })
-    })
-    return await response.json()
-  } catch (error) {
-    throw new Error('Failed to analyze news')
-  }
-}
+import { checkBackendHealth, runUnifiedWorkflow } from '@/lib/api'
 
 interface AnalysisResults {
   scraped_data?: any
@@ -156,7 +135,7 @@ export default function AdvancedNewsAnalysisPage() {
       
       setTimeout(() => {
         if (response.success) {
-          setAnalysisResults(response.data)
+          setAnalysisResults(response.data || null)
         } else {
           setError(response.message || 'Analysis failed')
         }

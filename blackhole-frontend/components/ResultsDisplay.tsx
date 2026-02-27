@@ -425,7 +425,7 @@ export default function ResultsDisplay({ results }: ResultsDisplayProps) {
 
     
       {/* Video Results */}
-      {results.sidebar_videos && getSafeNumber(results.sidebar_videos.total_found, 0) > 0 && (
+      {results?.sidebar_videos && getSafeNumber(results?.sidebar_videos?.total_found, 0) > 0 && (
         <div className="glass-effect rounded-xl p-6 border border-white/20">
           <div className="flex items-center space-x-3 mb-4">
             <Video className="w-6 h-6 text-red-400" />
@@ -436,28 +436,28 @@ export default function ResultsDisplay({ results }: ResultsDisplayProps) {
             <div className="flex items-center justify-between">
               <span className="text-gray-300">Videos discovered:</span>
               <span className="text-2xl font-bold text-red-400">
-                {getSafeNumber(results.sidebar_videos.total_found, 0)}
+                {getSafeNumber(results?.sidebar_videos?.total_found, 0)}
               </span>
             </div>
             
             {/* Content Source Context */}
-            {results.sidebar_videos.content_source && (
+            {results?.sidebar_videos?.content_source && (
               <div className="mb-4 p-3 bg-blue-500/20 border border-blue-500/30 rounded-lg">
                 <div className="flex items-center space-x-2">
                   <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
                   <span className="text-sm text-blue-300">
-                    {results.sidebar_videos.content_source === 'twitter'
+                    {results?.sidebar_videos?.content_source === 'twitter'
                       ? 'Social media content detected - showing related news videos'
-                      : `Content from ${results.sidebar_videos.content_source} - videos optimized for context`
+                      : `Content from ${getSafeString(results?.sidebar_videos?.content_source, 'Unknown')} - videos optimized for context`
                     }
                   </span>
                 </div>
               </div>
             )}
 
-            {results.sidebar_videos.videos && Array.isArray(results.sidebar_videos.videos) && (
+            {results?.sidebar_videos?.videos && Array.isArray(results?.sidebar_videos?.videos) && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {results.sidebar_videos.videos.slice(0, 4).map((video, index) => (
+                {results?.sidebar_videos?.videos.slice(0, 4).map((video, index) => (
                   <div key={index} className="flex items-center space-x-3 p-3 bg-black/20 rounded-lg">
                     <img
                       src={getSafeString(video?.thumbnail, createFallbackThumbnail('Video'))}
@@ -501,7 +501,7 @@ export default function ResultsDisplay({ results }: ResultsDisplayProps) {
       <div className="glass-effect rounded-xl p-4 border border-white/20">
         <div className="flex items-center justify-center space-x-4 text-gray-400">
           <Clock className="w-5 h-5" />
-          <span>Total processing time: <strong className="text-white">{getSafeNumber(results.total_processing_time, 1.4).toFixed(2)}s</strong></span>
+          <span>Total processing time: <strong className="text-white">{getSafeNumber(results?.total_processing_time, 1.4).toFixed(2)}s</strong></span>
           <span>•</span>
           <span>Workflow: <strong className="text-green-400">Complete</strong></span>
         </div>

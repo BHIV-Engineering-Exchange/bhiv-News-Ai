@@ -159,20 +159,40 @@ export async function triggerPipeline(newsId: string): Promise<any> {
  * Legacy workflow fallback for compatibility with Python-only backend
  */
 async function runLegacyWorkflow(url: string): Promise<WorkflowResult> {
-  const response = await fetch(`${API_BASE}/api/unified-news-workflow`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'ngrok-skip-browser-warning': 'true',
-    },
-    body: JSON.stringify({ url }),
-  })
+  const endpoint = `${API_BASE}/api/unified-news-workflow`
+  const body = { url }
 
-  if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`)
+  const secureHeaders = await buildSecureHeaders(endpoint, 'POST', body)
+
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), 15000)
+
+  try {
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'ngrok-skip-browser-warning': 'true',
+        ...secureHeaders,
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    })
+
+    clearTimeout(timeoutId)
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+
+    return await response.json()
+  } catch (error: any) {
+    clearTimeout(timeoutId)
+    if (error?.name === 'AbortError') {
+      throw new Error('Backend timeout after 15s')
+    }
+    throw error
   }
-
-  return await response.json()
 }
 
 /**
