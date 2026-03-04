@@ -1,0 +1,266 @@
+[
+  {
+    "timestamp": "2026-03-04T00:00:00.000000",
+    "endpoint": "/health",
+    "error": "System initialized - first monitoring run",
+    "status_code": 200,
+    "latency_ms": 45.5,
+    "backend_url": "http://localhost:8000"
+  },
+  {
+    "timestamp": "2026-03-04T10:00:26.156913",
+    "endpoint": "/",
+    "error": "Latency 2067ms exceeds threshold 2000ms",
+    "status_code": 200,
+    "latency_ms": 2067.1699047088623,
+    "backend_url": "http://localhost:8000"
+  },
+  {
+    "timestamp": "2026-03-04T10:00:28.212998",
+    "endpoint": "/health",
+    "error": "Latency 2054ms exceeds threshold 2000ms",
+    "status_code": 200,
+    "latency_ms": 2053.8108348846436,
+    "backend_url": "http://localhost:8000"
+  },
+  {
+    "timestamp": "2026-03-04T10:00:30.318649",
+    "endpoint": "/api/unified-news-workflow",
+    "error": "Latency 2104ms exceeds threshold 2000ms",
+    "status_code": 200,
+    "latency_ms": 2104.142427444458,
+    "backend_url": "http://localhost:8000"
+  },
+  {
+    "timestamp": "2026-03-04T10:00:32.369690",
+    "endpoint": "/api/scrape",
+    "error": "HTTP 403: {\"detail\":\"Not authenticated\"}",
+    "status_code": 403,
+    "latency_ms": 2049.9608516693115,
+    "backend_url": "http://localhost:8000"
+  },
+  {
+    "timestamp": "2026-03-04T10:00:34.429836",
+    "endpoint": "/api/summarize",
+    "error": "HTTP 403: {\"detail\":\"Not authenticated\"}",
+    "status_code": 403,
+    "latency_ms": 2059.04483795166,
+    "backend_url": "http://localhost:8000"
+  },
+  {
+    "timestamp": "2026-03-04T10:00:36.518706",
+    "endpoint": "/api/vet",
+    "error": "HTTP 422: {\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\",\"data\"],\"msg\":\"Field required\",\"input\":{\"url\":\"https://ex",
+    "status_code": 422,
+    "latency_ms": 2087.390899658203,
+    "backend_url": "http://localhost:8000"
+  },
+  {
+    "timestamp": "2026-03-04T10:01:08.570469",
+    "endpoint": "/",
+    "error": "Latency 2050ms exceeds threshold 2000ms",
+    "status_code": 200,
+    "latency_ms": 2049.8204231262207,
+    "backend_url": "http://localhost:8000"
+  },
+  {
+    "timestamp": "2026-03-04T10:01:10.628458",
+    "endpoint": "/health",
+    "error": "Latency 2057ms exceeds threshold 2000ms",
+    "status_code": 200,
+    "latency_ms": 2056.812047958374,
+    "backend_url": "http://localhost:8000"
+  },
+  {
+    "timestamp": "2026-03-04T10:01:12.699781",
+    "endpoint": "/api/unified-news-workflow",
+    "error": "Latency 2070ms exceeds threshold 2000ms",
+    "status_code": 200,
+    "latency_ms": 2070.0838565826416,
+    "backend_url": "http://localhost:8000"
+  },
+  {
+    "timestamp": "2026-03-04T10:01:14.740642",
+    "endpoint": "/api/scrape",
+    "error": "HTTP 403: {\"detail\":\"Not authenticated\"}",
+    "status_code": 403,
+    "latency_ms": 2039.658546447754,
+    "backend_url": "http://localhost:8000"
+  },
+  {
+    "timestamp": "2026-03-04T10:01:16.799979",
+    "endpoint": "/api/summarize",
+    "error": "HTTP 403: {\"detail\":\"Not authenticated\"}",
+    "status_code": 403,
+    "latency_ms": 2057.9121112823486,
+    "backend_url": "http://localhost:8000"
+  },
+  {
+    "timestamp": "2026-03-04T10:01:18.845781",
+    "endpoint": "/api/vet",
+    "error": "HTTP 422: {\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\",\"data\"],\"msg\":\"Field required\",\"input\":{\"url\":\"https://ex",
+    "status_code": 422,
+    "latency_ms": 2044.506549835205,
+    "backend_url": "http://localhost:8000"
+  },
+  {
+    "timestamp": "2026-03-04T10:12:14.659741",
+    "endpoint": "/",
+    "error": "Latency 2071ms exceeds threshold 2000ms",
+    "status_code": 200,
+    "latency_ms": 2071.272134780884,
+    "backend_url": "http://localhost:8000"
+  },
+  {
+    "timestamp": "2026-03-04T10:12:26.003587",
+    "endpoint": "/",
+    "error": "Latency 2074ms exceeds threshold 2000ms",
+    "status_code": 200,
+    "latency_ms": 2074.1286277770996,
+    "backend_url": "http://localhost:8000"
+  },
+  {
+    "timestamp": "2026-03-04T10:12:28.040915",
+    "endpoint": "/health",
+    "error": "Latency 2031ms exceeds threshold 2000ms",
+    "status_code": 200,
+    "latency_ms": 2031.148910522461,
+    "backend_url": "http://localhost:8000"
+  },
+  {
+    "timestamp": "2026-03-04T10:12:30.131093",
+    "endpoint": "/api/unified-news-workflow",
+    "error": "Latency 2089ms exceeds threshold 2000ms",
+    "status_code": 200,
+    "latency_ms": 2088.7556076049805,
+    "backend_url": "http://localhost:8000"
+  },
+  {
+    "timestamp": "2026-03-04T10:12:32.217292",
+    "endpoint": "/api/scrape",
+    "error": "HTTP 403: {\"detail\":\"Not authenticated\"}",
+    "status_code": 403,
+    "latency_ms": 2084.8612785339355,
+    "backend_url": "http://localhost:8000"
+  },
+  {
+    "timestamp": "2026-03-04T10:12:34.271227",
+    "endpoint": "/api/summarize",
+    "error": "HTTP 403: {\"detail\":\"Not authenticated\"}",
+    "status_code": 403,
+    "latency_ms": 2052.2549152374268,
+    "backend_url": "http://localhost:8000"
+  },
+  {
+    "timestamp": "2026-03-04T10:12:36.354826",
+    "endpoint": "/api/vet",
+    "error": "HTTP 422: {\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\",\"data\"],\"msg\":\"Field required\",\"input\":{\"url\":\"https://ex",
+    "status_code": 422,
+    "latency_ms": 2082.085371017456,
+    "backend_url": "http://localhost:8000"
+  },
+  {
+    "timestamp": "2026-03-04T10:12:46.230532",
+    "endpoint": "/",
+    "error": "Latency 2084ms exceeds threshold 2000ms",
+    "status_code": 200,
+    "latency_ms": 2084.244728088379,
+    "backend_url": "http://localhost:8000"
+  },
+  {
+    "timestamp": "2026-03-04T10:13:12.086570",
+    "endpoint": "/",
+    "error": "Latency 2088ms exceeds threshold 2000ms",
+    "status_code": 200,
+    "latency_ms": 2088.048219680786,
+    "backend_url": "http://localhost:8000"
+  },
+  {
+    "timestamp": "2026-03-04T10:13:14.149895",
+    "endpoint": "/health",
+    "error": "Latency 2062ms exceeds threshold 2000ms",
+    "status_code": 200,
+    "latency_ms": 2061.999797821045,
+    "backend_url": "http://localhost:8000"
+  },
+  {
+    "timestamp": "2026-03-04T10:13:16.227941",
+    "endpoint": "/api/unified-news-workflow",
+    "error": "Latency 2077ms exceeds threshold 2000ms",
+    "status_code": 200,
+    "latency_ms": 2076.8303871154785,
+    "backend_url": "http://localhost:8000"
+  },
+  {
+    "timestamp": "2026-03-04T10:13:18.273029",
+    "endpoint": "/api/scrape",
+    "error": "HTTP 403: {\"detail\":\"Not authenticated\"}",
+    "status_code": 403,
+    "latency_ms": 2043.8296794891357,
+    "backend_url": "http://localhost:8000"
+  },
+  {
+    "timestamp": "2026-03-04T10:13:20.343073",
+    "endpoint": "/api/summarize",
+    "error": "HTTP 403: {\"detail\":\"Not authenticated\"}",
+    "status_code": 403,
+    "latency_ms": 2068.6676502227783,
+    "backend_url": "http://localhost:8000"
+  },
+  {
+    "timestamp": "2026-03-04T10:13:22.414924",
+    "endpoint": "/api/vet",
+    "error": "HTTP 422: {\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\",\"data\"],\"msg\":\"Field required\",\"input\":{\"url\":\"https://ex",
+    "status_code": 422,
+    "latency_ms": 2070.6803798675537,
+    "backend_url": "http://localhost:8000"
+  },
+  {
+    "timestamp": "2026-03-04T10:16:06.436362",
+    "endpoint": "/",
+    "error": "Latency 2088ms exceeds threshold 2000ms",
+    "status_code": 200,
+    "latency_ms": 2088.0439281463623,
+    "backend_url": "http://localhost:8000"
+  },
+  {
+    "timestamp": "2026-03-04T10:16:08.508854",
+    "endpoint": "/health",
+    "error": "Latency 2071ms exceeds threshold 2000ms",
+    "status_code": 200,
+    "latency_ms": 2070.8351135253906,
+    "backend_url": "http://localhost:8000"
+  },
+  {
+    "timestamp": "2026-03-04T10:16:10.597006",
+    "endpoint": "/api/unified-news-workflow",
+    "error": "Latency 2086ms exceeds threshold 2000ms",
+    "status_code": 200,
+    "latency_ms": 2086.3654613494873,
+    "backend_url": "http://localhost:8000"
+  },
+  {
+    "timestamp": "2026-03-04T10:16:12.647119",
+    "endpoint": "/api/scrape",
+    "error": "HTTP 403: {\"detail\":\"Not authenticated\"}",
+    "status_code": 403,
+    "latency_ms": 2048.5126972198486,
+    "backend_url": "http://localhost:8000"
+  },
+  {
+    "timestamp": "2026-03-04T10:16:14.686051",
+    "endpoint": "/api/summarize",
+    "error": "HTTP 403: {\"detail\":\"Not authenticated\"}",
+    "status_code": 403,
+    "latency_ms": 2037.4810695648193,
+    "backend_url": "http://localhost:8000"
+  },
+  {
+    "timestamp": "2026-03-04T10:16:16.750580",
+    "endpoint": "/api/vet",
+    "error": "HTTP 422: {\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\",\"data\"],\"msg\":\"Field required\",\"input\":{\"url\":\"https://ex",
+    "status_code": 422,
+    "latency_ms": 2063.007116317749,
+    "backend_url": "http://localhost:8000"
+  }
+]
