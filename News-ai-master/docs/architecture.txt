@@ -1,0 +1,43 @@
+News AI Backend + RL Automation Architecture
+==========================================
+
+EXTERNAL SYSTEMS
+├── News Sources (URLs/APIs/RSS Feeds)
+├── Uniguru AI Services
+│   ├── Classification
+│   ├── Sentiment Analysis
+│   └── Text Summarization
+└── BHIV Core (TTV/Vaani)
+    ├── Push API
+    └── WebSocket Streaming
+
+FASTAPI BACKEND
+├── API Layer (30+ REST/WebSocket routes)
+├── Core Services (Auth/Middleware/Error Handling)
+└── MongoDB Atlas (Async Operations/Indexing)
+
+MCP AGENT REGISTRY (5 Agents)
+├── Fetch Agent - Web Scraping & Content Extraction
+├── Filter Agent - Relevance Scoring & Quality Filtering
+├── Verify Agent - Authenticity Analysis & Fact Checking
+├── Script Agent - Video Prompts & Content Adaptation
+└── RL Feedback Agent - Performance Evaluation & Auto-Correction
+
+LANGGRAPH AUTOMATOR PIPELINE
+├── START → FETCH → FILTER → VERIFY → SCRIPT → FEEDBACK
+├── State Management & Error Recovery
+└── Conditional Retry Logic
+
+REINFORCEMENT LEARNING
+├── Reward Function: Tone(30%) + Engagement(40%) + Quality(30%)
+├── Auto-Correction: Threshold < 0.6 → Re-summarize
+└── Metrics & Analytics: Performance Tracking
+
+OUTPUT & DELIVERY
+├── Structured JSON (News Content/Metadata/Video Scripts)
+├── BHIV Push API (Channel/Avatar Matrix 3×3)
+└── WebSocket Streaming (Real-time Updates)
+
+DATA FLOW:
+News Sources → Fetch Agent → Filter Agent → Verify Agent → Uniguru AI
+→ Script Agent → RL Feedback → BHIV Core → TTV/Vaani Output

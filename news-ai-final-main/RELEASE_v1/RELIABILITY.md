@@ -1,0 +1,11 @@
+- Fallbacks
+  - Uniguru unavailable: pipeline proceeds with available data; audio status defaults to none
+  - Deterministic RL: set RL_DETERMINISTIC=true to disable variability factors
+- Thresholds
+  - Default feedbackThreshold=0.6; configurable via POST /api/feedback/threshold
+  - Deterministic mode fixes scaling at 1.0
+- Errors
+  - All APIs return { success:false, error } on failure
+  - Missing fields return explicit nulls or empty objects
+- Health
+  - GET /health and GET /api/system/info with releaseTag

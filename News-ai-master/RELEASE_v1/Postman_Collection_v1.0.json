@@ -1,0 +1,436 @@
+{
+  "info": {
+    "name": "News AI Backend API v2.0",
+    "description": "Complete API collection for News AI Backend with unified pipeline",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "System Health",
+      "item": [
+        {
+          "name": "Get System Overview",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/",
+              "host": ["{{base_url}}"],
+              "path": [""]
+            }
+          }
+        },
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": ["{{base_url}}"],
+              "path": ["health"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Unified Pipeline (Production)",
+      "item": [
+        {
+          "name": "Run Complete Pipeline",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"url\": \"https://www.bbc.com/news\",\n  \"options\": {\n    \"enable_bhiv_push\": true,\n    \"enable_audio\": true,\n    \"channels\": [\"news_channel_1\"],\n    \"avatars\": [\"avatar_alice\"],\n    \"voice\": \"default\",\n    \"force_correction\": false\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/run_pipeline",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "run_pipeline"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "News Processing",
+      "item": [
+        {
+          "name": "Process News URL",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"url\": \"https://www.bbc.com/news\",\n  \"enable_full_pipeline\": true,\n  \"enable_bhiv_push\": false,\n  \"channel\": \"news_channel_1\",\n  \"avatar\": \"avatar_alice\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/process-news",
+              "host": ["{{base_url}}"],
+              "path": ["api", "process-news"]
+            }
+          }
+        },
+        {
+          "name": "Automator Process",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"url\": \"https://www.bbc.com/news\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/automator/process",
+              "host": ["{{base_url}}"],
+              "path": ["api", "automator", "process"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Agent Management",
+      "item": [
+        {
+          "name": "List All Agents",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/agents",
+              "host": ["{{base_url}}"],
+              "path": ["api", "agents"]
+            }
+          }
+        },
+        {
+          "name": "Submit Agent Task",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"task_data\": {\n    \"content\": \"Sample news content\",\n    \"title\": \"Sample Title\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/agents/fetch_agent/task",
+              "host": ["{{base_url}}"],
+              "path": ["api", "agents", "fetch_agent", "task"]
+            }
+          }
+        },
+        {
+          "name": "Get Task Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/tasks/{{task_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "tasks", "{{task_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "RL Feedback System",
+      "item": [
+        {
+          "name": "Calculate RL Feedback",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"news_item\": {\n    \"title\": \"Breaking News\",\n    \"content\": \"Full article content here...\",\n    \"authenticity_score\": 85\n  },\n  \"script_output\": {\n    \"video_script\": \"Generated video script content...\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/rl/feedback",
+              "host": ["{{base_url}}"],
+              "path": ["api", "rl", "feedback"]
+            }
+          }
+        },
+        {
+          "name": "Get RL Metrics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/rl/metrics?limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "rl", "metrics"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Uniguru AI Integration",
+      "item": [
+        {
+          "name": "Classify Text",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"text\": \"This is a sample news article about technology and artificial intelligence developments.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/uniguru/classify",
+              "host": ["{{base_url}}"],
+              "path": ["api", "uniguru", "classify"]
+            }
+          }
+        },
+        {
+          "name": "Analyze Sentiment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"text\": \"This is an amazing breakthrough in technology that will change the world.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/uniguru/sentiment",
+              "host": ["{{base_url}}"],
+              "path": ["api", "uniguru", "sentiment"]
+            }
+          }
+        },
+        {
+          "name": "Summarize Text",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"text\": \"This is a long article about artificial intelligence and its impact on society. AI has become increasingly important in various fields including healthcare, transportation, and entertainment. The technology continues to evolve rapidly with new breakthroughs happening regularly.\",\n  \"max_length\": 100\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/uniguru/summarize",
+              "host": ["{{base_url}}"],
+              "path": ["api", "uniguru", "summarize"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "BHIV Core Integration",
+      "item": [
+        {
+          "name": "Push to BHIV",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"channel\": \"news_channel_1\",\n  \"avatar\": \"avatar_alice\",\n  \"content\": {\n    \"title\": \"Breaking News\",\n    \"content\": \"Article content...\",\n    \"video_script\": \"Video script...\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/bhiv/push",
+              "host": ["{{base_url}}"],
+              "path": ["api", "bhiv", "push"]
+            }
+          }
+        },
+        {
+          "name": "Matrix Push (3x3)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": {\n    \"title\": \"Breaking News\",\n    \"content\": \"Article content...\",\n    \"video_script\": \"Video script...\"\n  },\n  \"channels\": [\"news_channel_1\", \"news_channel_2\", \"news_channel_3\"],\n  \"avatars\": [\"avatar_alice\", \"avatar_bob\", \"avatar_charlie\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/bhiv/matrix-push",
+              "host": ["{{base_url}}"],
+              "path": ["api", "bhiv", "matrix-push"]
+            }
+          }
+        },
+        {
+          "name": "BHIV Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/bhiv/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "bhiv", "status"]
+            }
+          }
+        },
+        {
+          "name": "BHIV Push History",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/bhiv/history?limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "bhiv", "history"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Database Operations",
+      "item": [
+        {
+          "name": "Get News Items",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/news?limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "news"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Specific News Item",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/news/{{news_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "news", "{{news_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Real-time Features",
+      "item": [
+        {
+          "name": "WebSocket Stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/websocket/stats",
+              "host": ["{{base_url}}"],
+              "path": ["api", "websocket", "stats"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Testing & Validation",
+      "item": [
+        {
+          "name": "Sample Validation Test",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/test/sample-validation",
+              "host": ["{{base_url}}"],
+              "path": ["api", "test", "sample-validation"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000",
+      "type": "string"
+    },
+    {
+      "key": "task_id",
+      "value": "task_12345",
+      "type": "string"
+    },
+    {
+      "key": "news_id",
+      "value": "news_12345",
+      "type": "string"
+    }
+  ]
+}
