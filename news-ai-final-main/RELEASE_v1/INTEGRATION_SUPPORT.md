@@ -1,0 +1,23 @@
+- Orchestration Contract
+  - /v1/run_pipeline returns:
+    - success: bool
+    - timestamp: ISO string
+    - newsItemId: string
+    - counts: { filtered: int, scripts: int }
+    - preview: array of { title, lang, audience, tone, variants, metadata }
+    - pipeline: object (never null)
+    - seeya_compat: object or null
+    - audio: { status, prompt?, metadata? } or { status:"none" }
+- Headers & JWT
+  - HMAC validation: GET /auth/validate with:
+    - X-Client-Nonce
+    - X-Timestamp
+    - X-Signature = HMAC-SHA256(secret, "nonce:timestamp:/auth/validate")
+    - Optional Authorization: Bearer <jwt>
+  - Controlled via JWT_HMAC_SECRET env
+- Feedback & Export
+  - Feedback: POST /api/feedback { newsId, feedbackType, metadata }
+  - Export: POST /api/bhiv/stream and /api/bhiv/process
+- Staging
+  - Use RELEASE_TAG=stable-v1, RL_DETERMINISTIC=true
+  - Run smoke tests against /v1/run_pipeline and /auth/validate

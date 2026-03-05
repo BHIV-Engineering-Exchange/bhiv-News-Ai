@@ -1,0 +1,156 @@
+{
+  "timestamp": "2025-11-25T12:00:54.458050",
+  "components_tested": [
+    {
+      "component": "sample_validation",
+      "success": false,
+      "error": "All connection attempts failed"
+    },
+    {
+      "component": "agent_registry",
+      "success": false,
+      "error": "All connection attempts failed"
+    },
+    {
+      "component": "uniguru_classification",
+      "success": false,
+      "error": "All connection attempts failed"
+    },
+    {
+      "component": "rl_feedback",
+      "success": false,
+      "error": "All connection attempts failed"
+    },
+    {
+      "component": "langgraph_automator_10_stories",
+      "success": false,
+      "stories_tested": 10,
+      "successful_stories": 0,
+      "adaptive_reprocessing_confirmed": false,
+      "details": [
+        {
+          "success": false,
+          "error": "All connection attempts failed"
+        },
+        {
+          "success": false,
+          "error": "All connection attempts failed"
+        },
+        {
+          "success": false,
+          "error": "All connection attempts failed"
+        },
+        {
+          "success": false,
+          "error": "All connection attempts failed"
+        },
+        {
+          "success": false,
+          "error": "All connection attempts failed"
+        },
+        {
+          "success": false,
+          "error": "All connection attempts failed"
+        },
+        {
+          "success": false,
+          "error": "All connection attempts failed"
+        },
+        {
+          "success": false,
+          "error": "All connection attempts failed"
+        },
+        {
+          "success": false,
+          "error": "All connection attempts failed"
+        },
+        {
+          "success": false,
+          "error": "All connection attempts failed"
+        }
+      ]
+    },
+    {
+      "component": "bhiv_integration",
+      "success": false,
+      "error": "All connection attempts failed"
+    },
+    {
+      "component": "mongodb_integration",
+      "success": false,
+      "error": "All connection attempts failed"
+    },
+    {
+      "component": "websocket_integration",
+      "success": true,
+      "note": "WebSocket server configured and should be running"
+    }
+  ],
+  "overall_success": false,
+  "total_latency": 0,
+  "channel_avatar_tests": [
+    {
+      "channel": "news_channel_1",
+      "avatar": "avatar_alice",
+      "success": false,
+      "error": "All connection attempts failed"
+    },
+    {
+      "channel": "news_channel_1",
+      "avatar": "avatar_bob",
+      "success": false,
+      "error": "All connection attempts failed"
+    },
+    {
+      "channel": "news_channel_1",
+      "avatar": "avatar_charlie",
+      "success": false,
+      "error": "All connection attempts failed"
+    },
+    {
+      "channel": "news_channel_2",
+      "avatar": "avatar_alice",
+      "success": false,
+      "error": "All connection attempts failed"
+    },
+    {
+      "channel": "news_channel_2",
+      "avatar": "avatar_bob",
+      "success": false,
+      "error": "All connection attempts failed"
+    },
+    {
+      "channel": "news_channel_2",
+      "avatar": "avatar_charlie",
+      "success": false,
+      "error": "All connection attempts failed"
+    },
+    {
+      "channel": "news_channel_3",
+      "avatar": "avatar_alice",
+      "success": false,
+      "error": "All connection attempts failed"
+    },
+    {
+      "channel": "news_channel_3",
+      "avatar": "avatar_bob",
+      "success": false,
+      "error": "All connection attempts failed"
+    },
+    {
+      "channel": "news_channel_3",
+      "avatar": "avatar_charlie",
+      "success": false,
+      "error": "All connection attempts failed"
+    }
+  ],
+  "summary": {
+    "total_tests": 17,
+    "successful_tests": 1,
+    "success_rate": 5.88235294117647,
+    "overall_success": false,
+    "test_duration": 0.0,
+    "components_tested": 8,
+    "channel_avatar_combinations": 9
+  }
+}
