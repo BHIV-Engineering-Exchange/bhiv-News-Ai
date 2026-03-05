@@ -1,3 +1,60 @@
+# DEMO RECOVERY GUIDE
+
+Purpose: Provide clear, non-developer steps to recover the News AI demo during a live demonstration.
+
+1) If Backend Becomes Unreachable
+- Step 1: Confirm network connectivity on demo machine (check Wi‑Fi / Ethernet).
+- Step 2: Open a terminal on the demo host and run:
+
+  ```powershell
+  cd "Task2-master"
+  python monitor_backend.py --backend-url http://localhost:8000 --iterations 1 --report
+  ```
+
+- Step 3: If the monitor shows `CRITICAL` or connection errors, restart the backend service(s):
+  - If using `uvicorn`: `uvicorn src.app:app --host 0.0.0.0 --port 8000 --reload`
+  - If services run via supervisor/docker, restart corresponding container or service.
+- Step 4: Re-run the monitor until status becomes `HEALTHY`.
+
+2) If Frontend Fails or Shows Errors
+- Step 1: Open browser dev tools and check console/network for errors.
+- Step 2: Confirm frontend is pointing to correct backend URL (environment config).
+- Step 3: Try hard refresh (Ctrl+F5) or clear local cache; reload the page.
+- Step 4: If crash persists, restart frontend dev server (npm / yarn):
+
+  ```powershell
+  cd blackhole-frontend || cd frontend
+  npm install
+  npm start
+  ```
+
+3) If Specific API Endpoint Fails
+- Step 1: Run the `demo_check.py` script to identify failing endpoint(s):
+
+  ```powershell
+  cd "Task2-master"
+  python demo_check.py --backend-url http://localhost:8000 --out demo_check_report.json
+  ```
+
+- Step 2: Inspect `demo_check_report.json` for `reason` and `status_code`.
+- Step 3: If 500 errors occur, check backend logs for stack traces and restart the failing process.
+
+4) Quick Restart Recipe (Non-developer friendly)
+- Stop all services.
+  - If using batch scripts in repo root: run `start-all.bat` or `start_all_v2.bat`.
+- Start backend first, wait until monitor reports `HEALTHY`, then start frontend.
+
+5) Safety Note During Demo
+- If unrecoverable errors occur mid-demo, switch to a prepared fallback: recorded demo video or static screenshots.
+- Do not attempt risky schema or pipeline changes during live demo. Use restart procedures only.
+
+6) Contacts
+- Backend lead: Noopur
+- Orchestration: Seeya
+- Frontend: Chandragupta
+- External tester: Vinayak
+
+Keep this document accessible during demos (on the demo machine desktop).
 # Demo Recovery Guide – News AI
 
 ## Quick Reference

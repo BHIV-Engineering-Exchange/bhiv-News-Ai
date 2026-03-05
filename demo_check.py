@@ -1,4 +1,92 @@
 #!/usr/bin/env python3
+"""Demo Safety Checker
+
+Checks pipeline, processing, and output endpoints and returns SAFE/UNSAFE.
+
+Usage: python demo_check.py --backend-url http://localhost:8000
+"""
+import os
+import sys
+import time
+import json
+import requests
+from datetime import datetime
+
+DEFAULT_BACKEND = os.getenv("BACKEND_URL", "http://localhost:8000")
+TIMEOUT = 10
+LATENCY_THRESHOLD_MS = 2000
+
+ENDPOINTS = {
+    "pipeline": ("/api/unified-news-workflow", "POST", {"url": "https://example.com"}),
+    "processing": ("/api/summarize", "POST", {"text": "Demo safety check text."}),
+    "output": ("/", "GET", None),
+}
+
+
+def check(endpoint, method, payload, backend_url):
+    url = f"{backend_url}{endpoint}"
+    start = time.time()
+    try:
+        if method == "GET":
+            r = requests.get(url, timeout=TIMEOUT)
+        else:
+            r = requests.post(url, json=payload or {}, timeout=TIMEOUT)
+
+        latency_ms = (time.time() - start) * 1000
+        ok = r.status_code == 200 and latency_ms <= LATENCY_THRESHOLD_MS
+        return {
+            "endpoint": endpoint,
+            "status_code": r.status_code,
+            "latency_ms": round(latency_ms, 2),
+            "ok": ok,
+            "reason": "" if ok else f"HTTP {r.status_code} / latency {latency_ms:.0f}ms",
+        }
+
+    except requests.exceptions.Timeout:
+        latency_ms = (time.time() - start) * 1000
+        return {"endpoint": endpoint, "status_code": None, "latency_ms": round(latency_ms,2), "ok": False, "reason": "timeout"}
+    except requests.exceptions.ConnectionError:
+        latency_ms = (time.time() - start) * 1000
+        return {"endpoint": endpoint, "status_code": None, "latency_ms": round(latency_ms,2), "ok": False, "reason": "connection_error"}
+    except Exception as e:
+        latency_ms = (time.time() - start) * 1000
+        return {"endpoint": endpoint, "status_code": None, "latency_ms": round(latency_ms,2), "ok": False, "reason": str(e)}
+
+
+def run_checks(backend_url: str):
+    results = {"checked_at": datetime.now().isoformat(), "backend_url": backend_url, "results": {}}
+    all_ok = True
+    for name, (endpoint, method, payload) in ENDPOINTS.items():
+        res = check(endpoint, method, payload, backend_url)
+        results["results"][name] = res
+        if not res["ok"]:
+            all_ok = False
+
+    results["safe"] = all_ok
+    return results
+
+
+def main():
+    import argparse
+    parser = argparse.ArgumentParser(description="Demo safety checker")
+    parser.add_argument("--backend-url", default=DEFAULT_BACKEND, help="Backend URL")
+    parser.add_argument("--out", default=None, help="Save JSON report to file")
+    args = parser.parse_args()
+
+    report = run_checks(args.backend_url)
+    status = "SAFE" if report["safe"] else "UNSAFE"
+    print(status)
+
+    if args.out:
+        with open(args.out, "w") as f:
+            json.dump(report, f, indent=2)
+
+    sys.exit(0 if report["safe"] else 2)
+
+
+if __name__ == "__main__":
+    main()
+#!/usr/bin/env python3
 """
 Demo Safety Checker - Pre-Demo Validation
 ==========================================

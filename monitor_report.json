@@ -1,10 +1,10 @@
 {
-  "report_generated": "2026-03-04T10:16:16.752140",
+  "report_generated": "2026-03-05T10:14:01.846664",
   "backend_url": "http://localhost:8000",
   "total_checks": 1,
   "total_errors": 6,
-  "total_requests": 6,
-  "uptime_seconds": 12.404127,
+  "total_requests": 0,
+  "uptime_seconds": 24.633919,
   "status_distribution": {
     "HEALTHY": 0,
     "DEGRADED": 0,
@@ -12,9 +12,9 @@
   },
   "recent_checks": [
     {
-      "timestamp": "2026-03-04T10:16:04.348038",
+      "timestamp": "2026-03-05T10:13:37.212777",
       "backend_url": "http://localhost:8000",
-      "uptime_seconds": 2.6e-05,
+      "uptime_seconds": 3.1e-05,
       "request_count": 0,
       "error_count": 0,
       "critical_checks": [
@@ -23,16 +23,16 @@
           "method": "GET",
           "description": "Root endpoint",
           "healthy": false,
-          "latency_ms": 2088.04,
-          "status_code": 200
+          "latency_ms": 4089.61,
+          "status_code": null
         },
         {
           "endpoint": "/health",
           "method": "GET",
           "description": "Health check",
           "healthy": false,
-          "latency_ms": 2070.84,
-          "status_code": 200
+          "latency_ms": 4126.71,
+          "status_code": null
         }
       ],
       "operational_checks": [
@@ -41,32 +41,32 @@
           "method": "POST",
           "description": "Main pipeline",
           "healthy": false,
-          "latency_ms": 2086.37,
-          "status_code": 200
+          "latency_ms": 4111.81,
+          "status_code": null
         },
         {
           "endpoint": "/api/scrape",
           "method": "POST",
           "description": "Scraping service",
           "healthy": false,
-          "latency_ms": 2048.51,
-          "status_code": 403
+          "latency_ms": 4088.04,
+          "status_code": null
         },
         {
           "endpoint": "/api/summarize",
           "method": "POST",
           "description": "Summarization service",
           "healthy": false,
-          "latency_ms": 2037.48,
-          "status_code": 403
+          "latency_ms": 4110.55,
+          "status_code": null
         },
         {
           "endpoint": "/api/vet",
           "method": "POST",
           "description": "Authenticity vetting",
           "healthy": false,
-          "latency_ms": 2063.01,
-          "status_code": 422
+          "latency_ms": 4098.81,
+          "status_code": null
         }
       ],
       "status": "CRITICAL",
@@ -75,51 +75,51 @@
   ],
   "errors": [
     {
-      "timestamp": "2026-03-04T10:16:06.436362",
+      "timestamp": "2026-03-05T10:13:41.302489",
       "endpoint": "/",
-      "error": "Latency 2088ms exceeds threshold 2000ms",
-      "status_code": 200,
-      "latency_ms": 2088.0439281463623,
+      "error": "Connection refused",
+      "status_code": null,
+      "latency_ms": 4089.6120071411133,
       "backend_url": "http://localhost:8000"
     },
     {
-      "timestamp": "2026-03-04T10:16:08.508854",
+      "timestamp": "2026-03-05T10:13:45.430580",
       "endpoint": "/health",
-      "error": "Latency 2071ms exceeds threshold 2000ms",
-      "status_code": 200,
-      "latency_ms": 2070.8351135253906,
+      "error": "Connection refused",
+      "status_code": null,
+      "latency_ms": 4126.710414886475,
       "backend_url": "http://localhost:8000"
     },
     {
-      "timestamp": "2026-03-04T10:16:10.597006",
+      "timestamp": "2026-03-05T10:13:49.543970",
       "endpoint": "/api/unified-news-workflow",
-      "error": "Latency 2086ms exceeds threshold 2000ms",
-      "status_code": 200,
-      "latency_ms": 2086.3654613494873,
+      "error": "Connection refused",
+      "status_code": null,
+      "latency_ms": 4111.806631088257,
       "backend_url": "http://localhost:8000"
     },
     {
-      "timestamp": "2026-03-04T10:16:12.647119",
+      "timestamp": "2026-03-05T10:13:53.633231",
       "endpoint": "/api/scrape",
-      "error": "HTTP 403: {\"detail\":\"Not authenticated\"}",
-      "status_code": 403,
-      "latency_ms": 2048.5126972198486,
+      "error": "Connection refused",
+      "status_code": null,
+      "latency_ms": 4088.0415439605713,
       "backend_url": "http://localhost:8000"
     },
     {
-      "timestamp": "2026-03-04T10:16:14.686051",
+      "timestamp": "2026-03-05T10:13:57.745114",
       "endpoint": "/api/summarize",
-      "error": "HTTP 403: {\"detail\":\"Not authenticated\"}",
-      "status_code": 403,
-      "latency_ms": 2037.4810695648193,
+      "error": "Connection refused",
+      "status_code": null,
+      "latency_ms": 4110.546350479126,
       "backend_url": "http://localhost:8000"
     },
     {
-      "timestamp": "2026-03-04T10:16:16.750580",
+      "timestamp": "2026-03-05T10:14:01.845218",
       "endpoint": "/api/vet",
-      "error": "HTTP 422: {\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\",\"data\"],\"msg\":\"Field required\",\"input\":{\"url\":\"https://ex",
-      "status_code": 422,
-      "latency_ms": 2063.007116317749,
+      "error": "Connection refused",
+      "status_code": null,
+      "latency_ms": 4098.806619644165,
       "backend_url": "http://localhost:8000"
     }
   ]

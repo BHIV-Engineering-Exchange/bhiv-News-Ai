@@ -1,0 +1,74 @@
+{
+  "checked_at": "2026-03-05T10:34:34.657624",
+  "iterations": 100,
+  "samples": [
+    {
+      "id": 1,
+      "input": {
+        "id": 1,
+        "headline": "This is a hoax story",
+        "text": "Completely fabricated",
+        "source": "unknown"
+      },
+      "first_output": {
+        "truth_level": 0,
+        "rationale": "Detected fabricated/hoax tokens"
+      },
+      "inconsistent_count": 0
+    },
+    {
+      "id": 2,
+      "input": {
+        "id": 2,
+        "headline": "Official release from reliable.org",
+        "source": "reliable.org",
+        "confidence": 0.95
+      },
+      "first_output": {
+        "truth_level": 4,
+        "rationale": "Source in trusted list: reliable.org"
+      },
+      "inconsistent_count": 0
+    },
+    {
+      "id": 3,
+      "input": {
+        "id": 3,
+        "headline": "Local report reportedly says...",
+        "text": "alleged theft reported"
+      },
+      "first_output": {
+        "truth_level": 2,
+        "rationale": "Contains hedging/attribution language"
+      },
+      "inconsistent_count": 0
+    },
+    {
+      "id": 4,
+      "input": {
+        "id": 4,
+        "headline": "Community meeting announced",
+        "text": "Town hall at 6pm"
+      },
+      "first_output": {
+        "truth_level": 3,
+        "rationale": "Default plausible/unverified"
+      },
+      "inconsistent_count": 0
+    },
+    {
+      "id": 5,
+      "input": {
+        "id": 5,
+        "headline": "Satire: politicians eat bananas",
+        "text": "This is parody"
+      },
+      "first_output": {
+        "truth_level": 1,
+        "rationale": "Detected satire/parody tokens"
+      },
+      "inconsistent_count": 0
+    }
+  ],
+  "stable": true
+}
