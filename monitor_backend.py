@@ -24,13 +24,22 @@ except Exception:
 
 ERROR_LOG = "newsai_error_log.json"
 REPORT = "monitor_report.json"
+CONFIG_FILE = "monitor_config.json"
 
+# Default endpoints (overridden by monitor_config.json when present)
 DEFAULT_ENDPOINTS = {
     "backend_root": "http://localhost:8000/",
     "api_health": "http://localhost:8000/health",
     "pipeline": "http://localhost:8000/pipeline/status",
     "processing": "http://localhost:8000/process",
     "output": "http://localhost:8000/output",
+}
+
+# Default alerting config
+DEFAULT_ALERTING = {
+    "slack_webhook": None,
+    "smtp": None,
+    "notify_on_failures": 1,
 }
 
 
@@ -93,6 +102,7 @@ def monitor(endpoints, interval=30, iterations=None):
     summary = {k: {"latencies": [], "checks": 0, "failures": 0} for k in endpoints}
     start_time = datetime.utcnow().isoformat() + "Z"
     loop = 0
+    alerted = {k: False for k in endpoints}
     try:
         while True:
             loop += 1
@@ -113,6 +123,26 @@ def monitor(endpoints, interval=30, iterations=None):
                         "status": res.get("status"),
                     }
                     append_error(entry)
+                    # send alert if not already alerted for this endpoint
+                    try:
+                        cfg = load_config()
+                        alert_cfg = cfg.get("alerting", DEFAULT_ALERTING)
+                    except Exception:
+                        alert_cfg = DEFAULT_ALERTING
+                    if alert_cfg.get("slack_webhook") and not alerted.get(name):
+                        send_slack_alert(alert_cfg["slack_webhook"], name, url, entry["error"]) 
+                        alerted[name] = True
+                else:
+                    # recovered: notify once and reset alerted flag
+                    try:
+                        cfg = load_config()
+                        alert_cfg = cfg.get("alerting", DEFAULT_ALERTING)
+                    except Exception:
+                        alert_cfg = DEFAULT_ALERTING
+                    if alerted.get(name):
+                        if alert_cfg.get("slack_webhook"):
+                            send_slack_recovery(alert_cfg["slack_webhook"], name, url)
+                        alerted[name] = False
             # update report after each loop
             report = {
                 "start_time": start_time,
@@ -144,7 +174,15 @@ def main():
     p.add_argument("--endpoints-file", type=str, default=None, help="JSON file with endpoints mapping")
     args = p.parse_args()
 
+    # Load config from monitor_config.json when present
     endpoints = DEFAULT_ENDPOINTS.copy()
+    config = {}
+    try:
+        config = load_config()
+        endpoints = config.get("endpoints", endpoints)
+    except Exception:
+        pass
+    # allow CLI override of endpoints file
     if args.endpoints_file:
         try:
             with open(args.endpoints_file, "r", encoding="utf-8") as f:
@@ -156,6 +194,33 @@ def main():
     print(f"Monitoring {len(endpoints)} endpoints every {args.interval}s. Press Ctrl-C to stop.")
     report = monitor(endpoints, interval=args.interval, iterations=args.iterations)
     print("Final report written to", REPORT)
+
+
+def load_config(path=CONFIG_FILE):
+    if not os.path.exists(path):
+        return {}
+    with open(path, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def send_slack_alert(webhook, endpoint, url, error):
+    if not webhook:
+        return
+    payload = {"text": f"[NewsAI Monitor] ALERT: {endpoint} failed at {datetime.utcnow().isoformat()}Z - {error}\n{url}"}
+    try:
+        requests.post(webhook, json=payload, timeout=5)
+    except Exception:
+        pass
+
+
+def send_slack_recovery(webhook, endpoint, url):
+    if not webhook:
+        return
+    payload = {"text": f"[NewsAI Monitor] RECOVERY: {endpoint} recovered at {datetime.utcnow().isoformat()}Z - {url}"}
+    try:
+        requests.post(webhook, json=payload, timeout=5)
+    except Exception:
+        pass
 
 
 if __name__ == "__main__":
