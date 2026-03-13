@@ -24,11 +24,11 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          if [ -f "Task2-master/requirements.txt" ]; then pip install -r Task2-master/requirements.txt || true; fi
+          if [ -f "News-Ai-main/requirements.txt" ]; then pip install -r News-Ai-main/requirements.txt || true; fi
           pip install pytest requests
 
-      - name: Run unit tests (Task2-master)
-        working-directory: Task2-master
+      - name: Run unit tests (News-Ai-main)
+        working-directory: News-Ai-main
         run: |
           python -m pytest tests -q
 
@@ -49,11 +49,11 @@ jobs:
       - name: Install backend deps
         run: |
           python -m pip install --upgrade pip
-          if [ -f "unified_tools_backend/requirements.txt" ]; then pip install -r unified_tools_backend/requirements.txt || true; fi
+          if [ -f "News-ai-master/unified_tools_backend/requirements.txt" ]; then pip install -r News-ai-master/unified_tools_backend/requirements.txt || true; fi
           pip install pytest requests httpx
 
       - name: Run backend tests (allowed failure)
-        working-directory: unified_tools_backend
+        working-directory: News-ai-master/unified_tools_backend
         continue-on-error: true
         run: |
           python -m pytest tests -q || true
@@ -74,16 +74,3 @@ jobs:
           MSG="CI results - Task2: $TASK2_RES; Unified: $UNIFIED_RES - Repo: $GITHUB_REPOSITORY - Ref: $GITHUB_REF"
           PAYLOAD=$(printf '{"text":"%s"}' "$MSG")
           curl -s -X POST -H 'Content-type: application/json' --data "$PAYLOAD" "$SLACK_WEBHOOK"
-
-      - name: Send email notification if SMTP configured
-        env:
-          SMTP_HOST: ${{ secrets.SMTP_HOST }}
-          SMTP_PORT: ${{ secrets.SMTP_PORT }}
-          SMTP_USER: ${{ secrets.SMTP_USER }}
-          SMTP_PASS: ${{ secrets.SMTP_PASS }}
-          ALERT_RECIPIENT: ${{ secrets.ALERT_RECIPIENT }}
-        run: |
-          if [ -z "$SMTP_HOST" ] || [ -z "$SMTP_USER" ] || [ -z "$SMTP_PASS" ] || [ -z "$ALERT_RECIPIENT" ]; then
-            echo "SMTP not fully configured, skipping email"; exit 0;
-          fi
-          python3 Task2-master/send_email_alert.py "CI Notification" "Task2: ${{ needs.test-task2.result }}; Unified: ${{ needs.test-unified-backend.result }}"

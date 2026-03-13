@@ -21,38 +21,38 @@ jobs:
         python-version: '3.9'
     - name: Install dependencies
       run: |
-        cd unified_tools_backend
+        cd News-ai-master/unified_tools_backend
         pip install -r requirements.txt
     - name: Run contract tests
       run: |
-        cd unified_tools_backend
+        cd News-ai-master/unified_tools_backend
         python -m pytest tests/test_api_contracts.py -v
     - name: Run idempotency tests
       run: |
-        cd unified_tools_backend
+        cd News-ai-master/unified_tools_backend
         python -m pytest tests/test_idempotency.py -v
     - name: Run deterministic behavior tests
       run: |
-        cd unified_tools_backend
+        cd News-ai-master/unified_tools_backend
         python -m pytest tests/test_deterministic_behavior.py -v
     - name: Run load sanity tests
       run: |
-        cd unified_tools_backend
+        cd News-ai-master/unified_tools_backend
         python -m pytest tests/test_load_sanity.py -v
     - name: Run integration validation tests
       run: |
-        cd unified_tools_backend
+        cd News-ai-master/unified_tools_backend
         python -m pytest tests/test_integration_assumptions.py -v
     - name: Validate reliability documentation
       run: |
         # Check if docs exist
-        if [ ! -f docs/reliability_guide.md ]; then
+        if [ ! -f News-ai-master/docs/reliability_guide.md ]; then
           echo "Reliability documentation missing"
           exit 1
         fi
     - name: Validate scheduler documentation
       run: |
-        if [ ! -f docs/scheduler_behavior_documentation.md ]; then
+        if [ ! -f News-ai-master/docs/scheduler_behavior_documentation.md ]; then
           echo "Scheduler behavior documentation missing"
           exit 1
         fi

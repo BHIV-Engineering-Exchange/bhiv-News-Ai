@@ -8,6 +8,9 @@ on:
 jobs:
   setup-and-test:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: News-Ai-main
     env:
       JWT_SECRET: ${{ secrets.JWT_SECRET }}
       TELEGRAM_API_ID: ${{ secrets.TELEGRAM_API_ID }}

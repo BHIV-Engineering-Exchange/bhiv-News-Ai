@@ -36,15 +36,15 @@ jobs:
         python-version: ${{ env.PYTHON_VERSION }}
     - name: Install dependencies
       run: |
-        cd unified_tools_backend
+        cd News-ai-master/unified_tools_backend
         pip install -r requirements.txt
     - name: Run API Contract Tests
       run: |
-        cd unified_tools_backend
+        cd News-ai-master/unified_tools_backend
         python tests/test_api_contract.py
     - name: Validate Contract Compliance
       run: |
-        if [ ! -f unified_tools_backend/tests/test_api_contract.py ]; then
+        if [ ! -f News-ai-master/unified_tools_backend/tests/test_api_contract.py ]; then
           echo "API contract test file missing"
           exit 1
         fi
@@ -66,20 +66,20 @@ jobs:
         python-version: ${{ env.PYTHON_VERSION }}
     - name: Install dependencies
       run: |
-        cd unified_tools_backend
+        cd News-ai-master/unified_tools_backend
         pip install -r requirements.txt
     - name: Run Integration Tests
       run: |
-        cd unified_tools_backend
+        cd News-ai-master/unified_tools_backend
         python run_full_test.py
     - name: Validate Integration Results
       run: |
-        if [ ! -f unified_tools_backend/final_test_results.json ]; then
+        if [ ! -f News-ai-master/unified_tools_backend/final_test_results.json ]; then
           echo "Integration test results missing"
           exit 1
         fi
         # Check for critical failures
-        if grep -q '"success": false' unified_tools_backend/final_test_results.json; then
+        if grep -q '"success": false' News-ai-master/unified_tools_backend/final_test_results.json; then
           echo "Critical integration test failures detected"
           exit 1
         fi

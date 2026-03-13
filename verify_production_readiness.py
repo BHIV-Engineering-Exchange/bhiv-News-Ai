@@ -67,7 +67,7 @@ async def verify_system():
     cwd = os.getcwd()
     # Adjust path if running from root or subfolder
     if "unified_tools_backend" not in cwd:
-        base_path = os.path.join(cwd, "Task2-master", "unified_tools_backend")
+        base_path = os.path.join(cwd, "News-ai-master", "unified_tools_backend")
     else:
         base_path = cwd
         
