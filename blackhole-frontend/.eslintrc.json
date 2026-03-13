@@ -1,0 +1,10 @@
+{
+  "extends": [
+    "next/core-web-vitals"
+  ],
+  "rules": {
+    // You can relax or tighten rules here as needed.
+    // For now we keep Next.js defaults to stay close to best practices.
+  }
+}
+

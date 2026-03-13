@@ -1,0 +1,233 @@
+[
+  {
+    "timestamp": "2026-03-05T07:50:15.373664Z",
+    "error": "HTTPConnectionPool(host='localhost', port=8000): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A0F5F5DE80>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+    "endpoint": "backend_root",
+    "url": "http://localhost:8000/",
+    "status": null
+  },
+  {
+    "timestamp": "2026-03-05T07:50:15.375053Z",
+    "error": "HTTPConnectionPool(host='localhost', port=8000): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A0F5F5DE80>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+    "endpoint": "backend_root",
+    "url": "http://localhost:8000/",
+    "status": null
+  },
+  {
+    "timestamp": "2026-03-05T07:50:19.482627Z",
+    "error": "HTTPConnectionPool(host='localhost', port=8000): Max retries exceeded with url: /health (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A0F5F6A990>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+    "endpoint": "api_health",
+    "url": "http://localhost:8000/health",
+    "status": null
+  },
+  {
+    "timestamp": "2026-03-05T07:50:19.483797Z",
+    "error": "HTTPConnectionPool(host='localhost', port=8000): Max retries exceeded with url: /health (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A0F5F6A990>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+    "endpoint": "api_health",
+    "url": "http://localhost:8000/health",
+    "status": null
+  },
+  {
+    "timestamp": "2026-03-05T07:50:23.567584Z",
+    "error": "HTTPConnectionPool(host='localhost', port=8000): Max retries exceeded with url: /pipeline/status (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A0F5F6B390>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+    "endpoint": "pipeline",
+    "url": "http://localhost:8000/pipeline/status",
+    "status": null
+  },
+  {
+    "timestamp": "2026-03-05T07:50:23.568689Z",
+    "error": "HTTPConnectionPool(host='localhost', port=8000): Max retries exceeded with url: /pipeline/status (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A0F5F6B390>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+    "endpoint": "pipeline",
+    "url": "http://localhost:8000/pipeline/status",
+    "status": null
+  },
+  {
+    "timestamp": "2026-03-05T07:50:27.675515Z",
+    "error": "HTTPConnectionPool(host='localhost', port=8000): Max retries exceeded with url: /process (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A0F5F16C40>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+    "endpoint": "processing",
+    "url": "http://localhost:8000/process",
+    "status": null
+  },
+  {
+    "timestamp": "2026-03-05T07:50:27.676862Z",
+    "error": "HTTPConnectionPool(host='localhost', port=8000): Max retries exceeded with url: /process (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A0F5F16C40>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+    "endpoint": "processing",
+    "url": "http://localhost:8000/process",
+    "status": null
+  },
+  {
+    "timestamp": "2026-03-05T07:50:31.806602Z",
+    "error": "HTTPConnectionPool(host='localhost', port=8000): Max retries exceeded with url: /output (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A0F5F17360>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+    "endpoint": "output",
+    "url": "http://localhost:8000/output",
+    "status": null
+  },
+  {
+    "timestamp": "2026-03-05T07:50:31.807640Z",
+    "error": "HTTPConnectionPool(host='localhost', port=8000): Max retries exceeded with url: /output (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A0F5F17360>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+    "endpoint": "output",
+    "url": "http://localhost:8000/output",
+    "status": null
+  },
+  {
+    "timestamp": "2026-03-05T07:50:36.942391Z",
+    "error": "HTTPConnectionPool(host='localhost', port=8000): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A0F5F46210>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+    "endpoint": "backend_root",
+    "url": "http://localhost:8000/",
+    "status": null
+  },
+  {
+    "timestamp": "2026-03-05T07:50:36.943675Z",
+    "error": "HTTPConnectionPool(host='localhost', port=8000): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A0F5F46210>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+    "endpoint": "backend_root",
+    "url": "http://localhost:8000/",
+    "status": null
+  },
+  {
+    "timestamp": "2026-03-05T07:50:41.039360Z",
+    "error": "HTTPConnectionPool(host='localhost', port=8000): Max retries exceeded with url: /health (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A0F5F3E360>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+    "endpoint": "api_health",
+    "url": "http://localhost:8000/health",
+    "status": null
+  },
+  {
+    "timestamp": "2026-03-05T07:50:41.040292Z",
+    "error": "HTTPConnectionPool(host='localhost', port=8000): Max retries exceeded with url: /health (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A0F5F3E360>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+    "endpoint": "api_health",
+    "url": "http://localhost:8000/health",
+    "status": null
+  },
+  {
+    "timestamp": "2026-03-05T07:50:45.149897Z",
+    "error": "HTTPConnectionPool(host='localhost', port=8000): Max retries exceeded with url: /pipeline/status (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A0F5F3D6A0>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+    "endpoint": "pipeline",
+    "url": "http://localhost:8000/pipeline/status",
+    "status": null
+  },
+  {
+    "timestamp": "2026-03-05T07:50:45.151006Z",
+    "error": "HTTPConnectionPool(host='localhost', port=8000): Max retries exceeded with url: /pipeline/status (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A0F5F3D6A0>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+    "endpoint": "pipeline",
+    "url": "http://localhost:8000/pipeline/status",
+    "status": null
+  },
+  {
+    "timestamp": "2026-03-05T07:50:49.289672Z",
+    "error": "HTTPConnectionPool(host='localhost', port=8000): Max retries exceeded with url: /process (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A0F5F3D8C0>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+    "endpoint": "processing",
+    "url": "http://localhost:8000/process",
+    "status": null
+  },
+  {
+    "timestamp": "2026-03-05T07:50:49.290629Z",
+    "error": "HTTPConnectionPool(host='localhost', port=8000): Max retries exceeded with url: /process (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A0F5F3D8C0>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+    "endpoint": "processing",
+    "url": "http://localhost:8000/process",
+    "status": null
+  },
+  {
+    "timestamp": "2026-03-05T07:50:53.383122Z",
+    "error": "HTTPConnectionPool(host='localhost', port=8000): Max retries exceeded with url: /output (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A0F5F3D480>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+    "endpoint": "output",
+    "url": "http://localhost:8000/output",
+    "status": null
+  },
+  {
+    "timestamp": "2026-03-05T07:50:53.384197Z",
+    "error": "HTTPConnectionPool(host='localhost', port=8000): Max retries exceeded with url: /output (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A0F5F3D480>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+    "endpoint": "output",
+    "url": "http://localhost:8000/output",
+    "status": null
+  },
+  {
+    "timestamp": "2026-03-05T07:50:58.518811Z",
+    "error": "HTTPConnectionPool(host='localhost', port=8000): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A0F5F3D370>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+    "endpoint": "backend_root",
+    "url": "http://localhost:8000/",
+    "status": null
+  },
+  {
+    "timestamp": "2026-03-05T07:50:58.519934Z",
+    "error": "HTTPConnectionPool(host='localhost', port=8000): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A0F5F3D370>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+    "endpoint": "backend_root",
+    "url": "http://localhost:8000/",
+    "status": null
+  },
+  {
+    "timestamp": "2026-03-05T07:51:02.646026Z",
+    "error": "HTTPConnectionPool(host='localhost', port=8000): Max retries exceeded with url: /health (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A0F5F3CF30>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+    "endpoint": "api_health",
+    "url": "http://localhost:8000/health",
+    "status": null
+  },
+  {
+    "timestamp": "2026-03-05T07:51:02.647135Z",
+    "error": "HTTPConnectionPool(host='localhost', port=8000): Max retries exceeded with url: /health (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A0F5F3CF30>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+    "endpoint": "api_health",
+    "url": "http://localhost:8000/health",
+    "status": null
+  },
+  {
+    "timestamp": "2026-03-05T07:51:06.786251Z",
+    "error": "HTTPConnectionPool(host='localhost', port=8000): Max retries exceeded with url: /pipeline/status (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A0F5F3CC00>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+    "endpoint": "pipeline",
+    "url": "http://localhost:8000/pipeline/status",
+    "status": null
+  },
+  {
+    "timestamp": "2026-03-05T07:51:06.787498Z",
+    "error": "HTTPConnectionPool(host='localhost', port=8000): Max retries exceeded with url: /pipeline/status (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A0F5F3CC00>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+    "endpoint": "pipeline",
+    "url": "http://localhost:8000/pipeline/status",
+    "status": null
+  },
+  {
+    "timestamp": "2026-03-05T07:51:10.897645Z",
+    "error": "HTTPConnectionPool(host='localhost', port=8000): Max retries exceeded with url: /process (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A0F5F3CD10>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+    "endpoint": "processing",
+    "url": "http://localhost:8000/process",
+    "status": null
+  },
+  {
+    "timestamp": "2026-03-05T07:51:10.898846Z",
+    "error": "HTTPConnectionPool(host='localhost', port=8000): Max retries exceeded with url: /process (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A0F5F3CD10>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+    "endpoint": "processing",
+    "url": "http://localhost:8000/process",
+    "status": null
+  },
+  {
+    "timestamp": "2026-03-05T07:51:15.019802Z",
+    "error": "HTTPConnectionPool(host='localhost', port=8000): Max retries exceeded with url: /output (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A0F5F3C9E0>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+    "endpoint": "output",
+    "url": "http://localhost:8000/output",
+    "status": null
+  },
+  {
+    "timestamp": "2026-03-05T07:51:15.021058Z",
+    "error": "HTTPConnectionPool(host='localhost', port=8000): Max retries exceeded with url: /output (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A0F5F3C9E0>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+    "endpoint": "output",
+    "url": "http://localhost:8000/output",
+    "status": null
+  },
+  {
+    "timestamp": "2026-03-05T08:22:07.255076Z",
+    "error": "HTTPConnectionPool(host='localhost', port=8000): Max retries exceeded with url: /pipeline/status (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000002323DED12B0>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+    "endpoint": "pipeline",
+    "url": "http://localhost:8000/pipeline/status",
+    "status": null
+  },
+  {
+    "timestamp": "2026-03-05T08:22:11.357653Z",
+    "error": "HTTPConnectionPool(host='localhost', port=8000): Max retries exceeded with url: /process (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000002323DED9950>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+    "endpoint": "processing",
+    "url": "http://localhost:8000/process",
+    "status": null
+  },
+  {
+    "timestamp": "2026-03-05T08:22:15.433195Z",
+    "error": "HTTPConnectionPool(host='localhost', port=8000): Max retries exceeded with url: /output (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000002323DEDA210>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+    "endpoint": "output",
+    "url": "http://localhost:8000/output",
+    "status": null
+  }
+]

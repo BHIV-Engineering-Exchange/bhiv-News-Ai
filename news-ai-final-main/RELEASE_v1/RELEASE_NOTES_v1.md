@@ -1,0 +1,24 @@
+# Release Notes v1.0
+
+- Overview
+  - Frontend (Vercel) linked to Noopur backend
+  - Live feed, pipeline viewer, TTS preview integrated
+  - RL loop adaptive; logging and benchmarks added
+  - CORS and rate limiting configured
+- Backend Endpoints
+  - Health: GET /health
+  - Workflow: POST /api/bhiv/process
+  - News: GET /api/news, GET /api/news/:id
+  - Processed: GET /api/processed/:id
+  - Audio: GET /api/audio/:id
+  - Feedback: POST /api/feedback
+  - Categories: GET /api/categories
+- Known Issues
+  - Audio URL depends on BHIV Vaani; may be null in dev
+  - Mocked stage timestamps in PipelineViewer
+- Compatibility
+  - Frontend services/api.js targets above endpoints
+  - Seeya/Sankalp JSON alignment via seeya_compat payloads
+- Next Steps
+  - Enable real audio generation pipeline
+  - Harden error codes and observability

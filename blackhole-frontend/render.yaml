@@ -1,0 +1,23 @@
+services:
+  # Frontend Web Service
+  - type: web
+    name: blackhole-frontend
+    env: node
+    region: singapore
+    plan: free
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: npm start
+    healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_SUPABASE_URL
+        sync: false
+      - key: NEXT_PUBLIC_SUPABASE_ANON_KEY
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: NEXT_PUBLIC_NOOPUR_API_BASE
+        sync: false
+      - key: NEXT_PUBLIC_SANKALP_API_BASE
+        sync: false

@@ -1,0 +1,8 @@
+# Insight Node - Render Deployment Config
+
+# 1. Start Command
+# Uvicorn with port binding from environment variable
+web: uvicorn main:app --host 0.0.0.0 --port $PORT
+
+# 2. Python Version
+python-3.11.4

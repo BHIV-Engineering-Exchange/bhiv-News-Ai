@@ -1,0 +1,203 @@
+[
+  {
+    "id": "scraped_1770450108161_afgz7ifpg",
+    "title": "'I dreamed of becoming a K-pop idol - but I felt like I was scammed'",
+    "description": "'I dreamed of becoming a K-pop idol - but I felt like I was scammed' 9 hours ago Share Save Hyojung Kim , Seoul and David Oh , Seoul Share Save Get...",
+    "url": "https://www.bbc.com/news/articles/cvgnq9rwyqno",
+    "source": "Bbc",
+    "category": "general",
+    "imageUrl": "https://img.youtube.com/vi/46q5_r86bWE/mqdefault.jpg",
+    "publishedAt": "Just now",
+    "readTime": "11 min read",
+    "scrapedAt": "2026-02-07T07:41:48.161Z",
+    "scrapedData": {
+      "url": "https://www.bbc.com/news/articles/cvgnq9rwyqno",
+      "timestamp": "2026-02-07T13:11:45.855781",
+      "workflow_steps": [
+        "scraping",
+        "vetting",
+        "summarization",
+        "prompt_generation",
+        "video_search"
+      ],
+      "processing_time": {
+        "scraping": 0.23,
+        "vetting": 0,
+        "summarization": 0.67,
+        "prompt_generation": 0.23,
+        "video_search": 1.17
+      },
+      "scraped_data": {
+        "title": "'I dreamed of becoming a K-pop idol - but I felt like I was scammed'",
+        "content_length": 10237,
+        "author": {},
+        "date": ""
+      },
+      "vetting_results": {
+        "authenticity_score": 86,
+        "credibility_rating": "High",
+        "is_reliable": true,
+        "reliability_status": "Reliable",
+        "authenticity_level": "HIGH",
+        "recommendation": "Credible news source",
+        "confidence": 0.85,
+        "analysis_details": {
+          "content_analysis": {
+            "overall_score": 95,
+            "method": "enhanced_rule_based",
+            "factual_phrases": 2,
+            "quotes": 20,
+            "word_count": 1750,
+            "sensational_flags": 0
+          },
+          "source_credibility": {
+            "score": 90
+          },
+          "bias_detection": {
+            "score": 90,
+            "bias_level": "OBJECTIVE",
+            "bias_indicators": {
+              "left_bias": 0,
+              "right_bias": 0,
+              "sensationalist": 0,
+              "objective": 1
+            },
+            "sentiment": "neutral"
+          }
+        },
+        "scoring_breakdown": {
+          "source_credibility": 22.5,
+          "content_analysis": 38,
+          "cross_verification": 12,
+          "bias_analysis": 13.5
+        },
+        "analyzed_at": "2026-02-07T13:11:46.087403",
+        "analysis_version": "working_v3.0"
+      },
+      "summary": {
+        "text": "'I dreamed of becoming a K-pop idol - but I felt like I was scammed' 9 hours ago Share Save Hyojung Kim , Seoul and David Oh , Seoul Share Save Get...",
+        "original_length": 10237,
+        "summary_length": 150,
+        "compression_ratio": 1.5
+      },
+      "video_prompt": {
+        "prompt": "Analyze the News summary: 'I dreamed of becoming a K-pop idol - but I felt like I was scammed' with a informative tone and professional style. Provide a medium analysis that includes key insights, supporting evidence, and clear conclusions.",
+        "for_video_creation": true,
+        "based_on_summary": true
+      },
+      "ai_video_generation": {
+        "success": false,
+        "error": "name 'AIVideoGenerationService' is not defined",
+        "fallback_available": true
+      },
+      "sidebar_videos": {
+        "videos": [
+          {
+            "source": "youtube",
+            "video_id": "46q5_r86bWE",
+            "title": "Video about 'I dreamed of becoming a K-pop idol - but I felt like I was scammed' news coverage analy",
+            "description": "YouTube video about 'I dreamed of becoming a K-pop idol - but I felt like I was scammed' news coverage analysis",
+            "thumbnail": "https://img.youtube.com/vi/46q5_r86bWE/mqdefault.jpg",
+            "channel": "YouTube Channel",
+            "url": "https://www.youtube.com/watch?v=46q5_r86bWE",
+            "embed_url": "https://www.youtube.com/embed/46q5_r86bWE",
+            "relevance_score": 0.85,
+            "real_video": true
+          },
+          {
+            "source": "youtube",
+            "video_id": "wEB5OaS4-1Q",
+            "title": "Video about 'I dreamed of becoming a K-pop idol - but I felt like I was scammed' news coverage analy",
+            "description": "YouTube video about 'I dreamed of becoming a K-pop idol - but I felt like I was scammed' news coverage analysis",
+            "thumbnail": "https://img.youtube.com/vi/wEB5OaS4-1Q/mqdefault.jpg",
+            "channel": "YouTube Channel",
+            "url": "https://www.youtube.com/watch?v=wEB5OaS4-1Q",
+            "embed_url": "https://www.youtube.com/embed/wEB5OaS4-1Q",
+            "relevance_score": 0.85,
+            "real_video": true
+          },
+          {
+            "source": "youtube",
+            "video_id": "DHhZpz3jPQo",
+            "title": "Video about 'I dreamed of becoming a K-pop idol - but I felt like I was scammed' news coverage analy",
+            "description": "YouTube video about 'I dreamed of becoming a K-pop idol - but I felt like I was scammed' news coverage analysis",
+            "thumbnail": "https://img.youtube.com/vi/DHhZpz3jPQo/mqdefault.jpg",
+            "channel": "YouTube Channel",
+            "url": "https://www.youtube.com/watch?v=DHhZpz3jPQo",
+            "embed_url": "https://www.youtube.com/embed/DHhZpz3jPQo",
+            "relevance_score": 0.85,
+            "real_video": true
+          }
+        ],
+        "total_found": 3,
+        "ready_for_playback": true
+      },
+      "total_processing_time": 2.3,
+      "workflow_complete": true,
+      "steps_completed": 5
+    },
+    "summary": "'I dreamed of becoming a K-pop idol - but I felt like I was scammed' 9 hours ago Share Save Hyojung Kim , Seoul and David Oh , Seoul Share Save Get...",
+    "insights": {
+      "authenticity_score": 86,
+      "credibility_rating": "High",
+      "is_reliable": true,
+      "reliability_status": "Reliable",
+      "authenticity_level": "HIGH",
+      "recommendation": "Credible news source",
+      "confidence": 0.85,
+      "analysis_details": {
+        "content_analysis": {
+          "overall_score": 95,
+          "method": "enhanced_rule_based",
+          "factual_phrases": 2,
+          "quotes": 20,
+          "word_count": 1750,
+          "sensational_flags": 0
+        },
+        "source_credibility": {
+          "score": 90
+        },
+        "bias_detection": {
+          "score": 90,
+          "bias_level": "OBJECTIVE",
+          "bias_indicators": {
+            "left_bias": 0,
+            "right_bias": 0,
+            "sensationalist": 0,
+            "objective": 1
+          },
+          "sentiment": "neutral"
+        }
+      },
+      "scoring_breakdown": {
+        "source_credibility": 22.5,
+        "content_analysis": 38,
+        "cross_verification": 12,
+        "bias_analysis": 13.5
+      },
+      "analyzed_at": "2026-02-07T13:11:46.087403",
+      "analysis_version": "working_v3.0"
+    },
+    "relatedVideos": [
+      {
+        "title": "Video about 'I dreamed of becoming a K-pop idol - but I felt like I was scammed' news coverage analy",
+        "url": "https://www.youtube.com/watch?v=46q5_r86bWE",
+        "thumbnail": "https://img.youtube.com/vi/46q5_r86bWE/mqdefault.jpg",
+        "source": "youtube"
+      },
+      {
+        "title": "Video about 'I dreamed of becoming a K-pop idol - but I felt like I was scammed' news coverage analy",
+        "url": "https://www.youtube.com/watch?v=wEB5OaS4-1Q",
+        "thumbnail": "https://img.youtube.com/vi/wEB5OaS4-1Q/mqdefault.jpg",
+        "source": "youtube"
+      },
+      {
+        "title": "Video about 'I dreamed of becoming a K-pop idol - but I felt like I was scammed' news coverage analy",
+        "url": "https://www.youtube.com/watch?v=DHhZpz3jPQo",
+        "thumbnail": "https://img.youtube.com/vi/DHhZpz3jPQo/mqdefault.jpg",
+        "source": "youtube"
+      }
+    ],
+    "storedAt": "2026-02-07T07:41:48.172Z"
+  }
+]

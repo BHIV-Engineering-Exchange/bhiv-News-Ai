@@ -1,0 +1,16 @@
+{
+    "version": 2,
+    "buildCommand": "npm run build",
+    "devCommand": "npm run dev",
+    "installCommand": "npm install",
+    "framework": "nextjs",
+    "outputDirectory": ".next",
+    "env": {
+        "NEXT_PUBLIC_NOOPUR_API_BASE": "@noopur_api_base",
+        "NEXT_PUBLIC_SANKALP_API_BASE": "@sankalp_api_base",
+        "NEXT_PUBLIC_AUDIO_BASE_URL": "@audio_base_url",
+        "NEXT_PUBLIC_JWT_TOKEN": "@jwt_token",
+        "NEXT_PUBLIC_HMAC_SECRET": "@hmac_secret",
+        "NEXT_PUBLIC_ENV": "production"
+    }
+}

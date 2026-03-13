@@ -1,0 +1,22 @@
+# Noopur Backend Deployment
+
+- Platform: Render
+- Services:
+  - FastAPI (Python) on port 8000
+  - Node pipeline on port 3000
+- Environment:
+  - MONGODB_URI
+  - UNIGURU_API_KEY
+  - UNIGURU_BASE_URL
+  - NOOPUR_NODE_BASE_URL
+  - SANKALP_API_BASE
+  - ALLOWED_ORIGINS
+  - RATE_LIMIT_PER_MIN
+- Commands:
+  - FastAPI: `uvicorn fastapi_microservices.main:app --host 0.0.0.0 --port 8000`
+  - Node: `node src/index.js`
+- Domain:
+  - Connect to custom domain and route `/api/news` to FastAPI
+- Tests:
+  - Run Postman collection against public URL
+  - Validate live scraping, voice generation, RL feedback, frontend preview

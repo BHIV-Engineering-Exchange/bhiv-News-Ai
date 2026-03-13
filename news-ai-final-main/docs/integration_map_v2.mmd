@@ -1,0 +1,50 @@
+flowchart TD
+    IN[Inputs: URLs, Feeds, Manual] --> A1
+
+    subgraph Noopur_Backend["Noopur Backend"]
+        direction TB
+        A1[Agents: fetch, verify, script] --> RL[RL Feedback Loop]
+        RL --> SCRIPTS[Script Stage: narratives, variants]
+        SCRIPTS --> VAANI[Voice TTS - BHIV vaani]
+        RL -. threshold corrections .-> A1
+        A1 --> ENRICH[Uniguru Enrichment: classify, sentiment, summarize]
+        ENRICH --> DB[MongoDB]
+        SCRIPTS --> PUB[Publish status: published]
+        PUB --> BHIV[BHIV Integration: ttv, vaani, core sync]
+    end
+
+    subgraph Seeya_Orchestrator["Seeya Orchestrator FastAPI"]
+        direction TB
+        SYF[fetch] --> SYP[process]
+        SYP --> SYV[voice]
+        SYF --> SYUI[UI Preview]
+        SYP --> SYUI
+        SYV --> SYUI
+        SYFB[feedback] --> SYDB[DB]
+    end
+
+    subgraph Sankalp_Unified["Sankalp Unified Tools FastAPI"]
+        direction TB
+        U1[api/scrape] --> U2[api/vet]
+        U2 --> U3[api/summarize]
+        U3 --> U4[api/unified-news-workflow]
+        U4 --> UUI[Frontend API Service]
+    end
+
+    subgraph Frontend["Chandragupta Frontend Next.js"]
+        direction TB
+        FAPI[API Service: secure headers, JWT] --> FUI[UI Components: Pipeline, Feed, Live]
+        FAPI --> HEALTH[health]
+        FAPI --> NEWS[api/news]
+        FAPI --> BHIVAPI[api/bhiv/*]
+    end
+
+    IN --> SYF
+    IN --> U1
+    DB --> FAPI
+    BHIV --> FAPI
+    BHIV --> SYUI
+    U4 --> FAPI
+    SYUI --> FUI
+
+    FUI --> EXPORT[Final Export: TTV, Vaani, Core Consumers]

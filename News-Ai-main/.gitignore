@@ -1,0 +1,41 @@
+# Python virtual environments
+.venv/
+env/
+venv/
+
+# Python artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# IDE/editor files
+.idea/
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/*
+!logs/.gitkeep
+
+# Cache and temporary
+.pytest_cache/
+.cache/
+
+# Generated outputs (keep JSON artifacts in single_pipeline/output)
+single_pipeline/output/*.tmp
+
+# Local environment (do not commit real secrets)
+.env
+*.db
+*.db-shm
+*.db-wal
+
+# Generated Media (do not commit large binary files)
+single_pipeline/data/tts/*.wav
+single_pipeline/data/avatar/*.mp4
+single_pipeline/data/avatar/*.json

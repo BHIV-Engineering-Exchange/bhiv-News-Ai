@@ -1,0 +1,58 @@
+services:
+  # Backend API Service
+  - type: web
+    name: news-ai-backend
+    runtime: python
+    region: oregon
+    plan: free
+    branch: master
+    rootDir: unified_tools_backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: ENABLE_OPENAI
+        value: "0"
+      - key: ENABLE_GROK
+        value: "0"
+      - key: OLLAMA_BASE_URL
+        value: "https://249b3496e9d6.ngrok-free.app"
+      - key: OLLAMA_MODEL
+        value: "llama3.1"
+      - key: BLACKHOLE_LLM_URL
+        value: "https://d52770bec07e.ngrok-free.app"
+      - key: BLACKHOLE_LLM_MODEL
+        value: "llama3.1"
+    healthCheckPath: /health
+
+  # Frontend Service
+  - type: web
+    name: news-ai-frontend
+    runtime: node
+    region: oregon
+    plan: free
+    branch: master
+    rootDir: blackhole-frontend
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_VERSION
+        value: 20.11.0
+      - key: NEXT_PUBLIC_NOOPUR_API_BASE
+        fromService:
+          type: web
+          name: news-ai-backend
+          envVarKey: RENDER_EXTERNAL_URL
+      - key: NEXT_PUBLIC_SANKALP_API_BASE
+        fromService:
+          type: web
+          name: news-ai-backend
+          envVarKey: RENDER_EXTERNAL_URL
+      - key: NEXT_PUBLIC_SEEYA_API_BASE
+        fromService:
+          type: web
+          name: news-ai-backend
+          envVarKey: RENDER_EXTERNAL_URL
+      - key: NEXT_PUBLIC_ENV
+        value: production
