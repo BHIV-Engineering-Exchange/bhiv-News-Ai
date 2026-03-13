@@ -1,63 +1,73 @@
-import copy
-from truth_classifier import classify_claim
+import pytest
+from truth_classifier import classify_truth_level, TruthLevel
 from conflict_detector import detect_conflicts
 
+# --- Truth Classifier Tests ---
 
-def test_classify_levels():
-    # level 4 (direct)
-    e = {"sources": [], "evidence": [{"evidence_type": "direct"}]}
-    assert classify_claim(e) == 4
+def test_unverified_claim():
+    sources = []
+    assert classify_truth_level(sources) == TruthLevel.UNVERIFIED
 
-    # level 3 (institutional)
-    e = {"sources": [], "evidence": [{"evidence_type": "institutional"}]}
-    assert classify_claim(e) == 3
+def test_single_source():
+    sources = [{"source_id": "bbc-001"}]
+    assert classify_truth_level(sources) == TruthLevel.SINGLE_SOURCE
 
-    # level 2 (multi-source)
-    e = {"sources": ["a", "b"], "evidence": []}
-    assert classify_claim(e) == 2
-
-    # level 2 (two reports)
-    e = {"sources": [], "evidence": [{"evidence_type": "report"}, {"evidence_type": "report"}]}
-    assert classify_claim(e) == 2
-
-    # level 1 (single source)
-    e = {"sources": ["only"], "evidence": []}
-    assert classify_claim(e) == 1
-
-    # level 0 (none)
-    e = {"sources": [], "evidence": []}
-    assert classify_claim(e) == 0
-
-
-def test_deterministic_classification():
-    base = {"sources": ["s1"], "evidence": [{"evidence_type": "report"}]}
-    a = classify_claim(base)
-    b = classify_claim(copy.deepcopy(base))
-    assert a == b
-
-
-def test_conflict_detection_numeric():
-    evs = [
-        {"registry_reference_id": "r1", "value": 10},
-        {"registry_reference_id": "r1", "value": 11},
+def test_multi_source():
+    sources = [
+        {"source_id": "bbc-001"},
+        {"source_id": "reuters-001"}
     ]
-    res = detect_conflicts(evs)
-    assert res.get("r1") is True
+    assert classify_truth_level(sources) == TruthLevel.CORROBORATED
 
-
-def test_conflict_detection_no_conflict():
-    evs = [
-        {"registry_reference_id": "r2", "value": 10},
-        {"registry_reference_id": "r2", "value": 10},
+def test_authoritative_source():
+    sources = [
+        {"source_id": "official-gov-001", "authority_level": 3}
     ]
-    res = detect_conflicts(evs)
-    assert res.get("r2") is False
+    assert classify_truth_level(sources) == TruthLevel.AUTHORITATIVE
 
-
-def test_conflict_detection_categorical():
-    evs = [
-        {"registry_reference_id": "r3", "status": "open"},
-        {"registry_reference_id": "r3", "status": "closed"},
+def test_primary_evidence():
+    sources = [
+        {"source_id": "leak-doc-001", "primary_evidence": True}
     ]
-    res = detect_conflicts(evs)
-    assert res.get("r3") is True
+    assert classify_truth_level(sources) == TruthLevel.PRIMARY_EVIDENCE
+
+def test_precedence_rules():
+    # Primary evidence should trump authority level
+    sources = [
+        {"source_id": "source-1", "authority_level": 3},
+        {"source_id": "source-2", "primary_evidence": True}
+    ]
+    assert classify_truth_level(sources) == TruthLevel.PRIMARY_EVIDENCE
+
+# --- Conflict Detector Tests ---
+
+def test_no_conflicts():
+    registry_id = "REF-123"
+    new_entry = {"status": "active", "count": 100}
+    existing = [{"registry_reference_id": "REF-123", "status": "active", "count": 100}]
+    assert detect_conflicts(registry_id, new_entry, existing) is False
+
+def test_numeric_conflict():
+    registry_id = "REF-123"
+    new_entry = {"count": 200}
+    existing = [{"registry_reference_id": "REF-123", "count": 100}]
+    assert detect_conflicts(registry_id, new_entry, existing) is True
+
+def test_categorical_conflict():
+    registry_id = "REF-123"
+    new_entry = {"status": "closed"}
+    existing = [{"registry_reference_id": "REF-123", "status": "active"}]
+    assert detect_conflicts(registry_id, new_entry, existing) is True
+
+def test_boolean_conflict():
+    registry_id = "REF-123"
+    new_entry = {"verified": True}
+    existing = [{"registry_reference_id": "REF-123", "verified": False}]
+    assert detect_conflicts(registry_id, new_entry, existing) is True
+
+def test_cross_registry_no_conflict():
+    # Entries for different registry IDs should not conflict
+    registry_id = "REF-123"
+    new_entry = {"status": "closed"}
+    existing = [{"registry_reference_id": "REF-456", "status": "active"}]
+    assert detect_conflicts(registry_id, new_entry, existing) is False

@@ -1,76 +1,45 @@
 """
-Deterministic truth classifier (truth_level 0-4).
-
-API:
- - classify_claim(event: dict) -> int
-
-Expected input event fields (no schema mutation; function reads these keys if present):
- - "sources": list of source identifiers (can be empty)
- - "evidence": list of dicts with key "evidence_type" values in {"direct","institutional","report"}
-
-Rules (deterministic, explicit):
- - 4: any evidence item with evidence_type == "direct"
- - 3: any evidence item with evidence_type == "institutional"
- - 2: if distinct sources count >= 2 OR at least two corroborating evidence items (report)
- - 1: if exactly one source and no higher rule matched
- - 0: otherwise (unverified)
-
-No randomness, no probabilistic inference, no schema changes.
+Truth Classifier Module
+Deterministic classification of truth signals into levels 0-4.
 """
-from typing import Dict, List, Any
 
-def _count_distinct_sources(event: Dict[str, Any]) -> int:
-    sources = event.get("sources") or []
-    try:
-        return len(set(sources))
-    except TypeError:
-        # non-hashable sources -> fallback to length
-        return len(list(sources))
+from typing import List, Dict, Any, Optional
 
-def _evidence_types(event: Dict[str, Any]) -> List[str]:
-    ev = event.get("evidence") or []
-    types = []
-    for item in ev:
-        if not isinstance(item, dict):
-            continue
-        t = item.get("evidence_type")
-        if isinstance(t, str):
-            types.append(t.lower())
-    return types
+class TruthLevel:
+    UNVERIFIED = 0          # Unverified claim
+    SINGLE_SOURCE = 1      # Single-source report
+    CORROBORATED = 2        # Multi-source corroboration
+    AUTHORITATIVE = 3      # Institutional / primary authority source
+    PRIMARY_EVIDENCE = 4   # Direct documented or primary evidence
 
-def classify_claim(event: Dict[str, Any]) -> int:
-    """Deterministically classify an event into truth_level 0-4.
-
-    The function is pure: same input dict (content-wise) always returns the
-    same integer. It avoids heuristics beyond simple counts and explicit tags.
+def classify_truth_level(sources: List[Dict[str, Any]]) -> int:
     """
-    # Rule 4: direct documented / primary evidence
-    types = _evidence_types(event)
-    if "direct" in types:
-        return 4
+    Classifies truth level based on source metadata.
+    Deterministic and rule-based.
+    """
+    if not sources:
+        return TruthLevel.UNVERIFIED
 
-    # Rule 3: institutional / primary authority source
-    if "institutional" in types:
-        return 3
+    # Check for primary evidence (Level 4)
+    # Primary evidence is defined as a source with 'primary_evidence' = True
+    # or a direct link to a document/official transcript.
+    if any(s.get('primary_evidence', False) for s in sources):
+        return TruthLevel.PRIMARY_EVIDENCE
 
-    # Rule 2: multi-source corroboration
-    distinct_sources = _count_distinct_sources(event)
-    if distinct_sources >= 2:
-        return 2
+    # Check for authoritative/institutional sources (Level 3)
+    # Authoritative sources have 'authority_level' >= 3
+    if any(s.get('authority_level', 0) >= 3 for s in sources):
+        return TruthLevel.AUTHORITATIVE
 
-    # Also treat multiple 'report' evidence items as corroboration
-    if types.count("report") >= 2:
-        return 2
+    # Check for multi-source corroboration (Level 2)
+    # Multi-source is defined as >= 2 distinct source identifiers.
+    unique_sources = {s.get('source_id') for s in sources if s.get('source_id')}
+    if len(unique_sources) >= 2:
+        return TruthLevel.CORROBORATED
 
-    # Rule 1: single-source report
-    if distinct_sources == 1 or types.count("report") == 1:
-        return 1
+    # Check for single-source (Level 1)
+    if len(unique_sources) == 1:
+        return TruthLevel.SINGLE_SOURCE
 
-    # Rule 0: unverified claim
-    return 0
-
-
-if __name__ == "__main__":
-    # quick smoke check
-    sample = {"sources": ["s1"], "evidence": [{"evidence_type": "report"}]}
-    print(classify_claim(sample))
+    # Default to unverified
+    return TruthLevel.UNVERIFIED
