@@ -1,35 +1,75 @@
-# DEMO Recovery Guide
+# 🛠️ NEWS AI - Demo Recovery Guide (Operator Edition)
 
-If the demo experiences failures, follow these step-by-step recovery actions. This guide assumes limited developer access and is written for demo operators.
+This guide provides **immediate, step-by-step recovery actions** for demo operators. If the system fails during a live demonstration, follow these steps in order.
 
-1) If backend stops responding
-   - Check process manager on the demo host (Windows: Task Manager / Services; Linux: systemd `sudo systemctl status newsai`).
-   - Restart the service: `sudo systemctl restart newsai` or use the startup script (ask devs for exact command).
-   - If the API is still unreachable, check port (default 8000) and firewall rules.
-   - Run `python monitor_backend.py --iterations 1` locally to confirm reachability and create an immediate report.
+---
 
-2) If frontend fails or shows UI errors
-   - Reload the frontend in the browser (hard refresh: Ctrl+Shift+R).
-   - Check browser console for error messages and copy them into the incident note.
-   - If UI shows network 5xx/4xx, run `python demo_check.py` to determine if backend endpoints are failing.
+## 🛑 Step 0: The "Quick Fix"
+1.  **Hard Refresh**: Press `Ctrl + Shift + R` (Windows) or `Cmd + Shift + R` (Mac) in the browser.
+2.  **Check Status**: Run the safety checker to identify the root cause:
+    ```bash
+    python demo_check.py
+    ```
+    - If it says **SAFE**, the issue is likely your browser or internet connection.
+    - If it says **UNSAFE**, follow the specific scenario below.
 
-3) If pipeline processing stalls
-   - Confirm pipeline endpoint via `demo_check.py` to see if pipeline/processing/output endpoints respond.
-   - If the pipeline service is down, restart the worker services (ask devs for the worker command).
+---
 
-4) Logs and diagnostics
-   - Check `newsai_error_log.json` for recent errors and timestamps.
-   - Check `monitor_report.json` for summary statistics and recent latencies.
-   - Collect server logs and include last 20 lines in incident report.
+## 📉 Scenario A: Backend Stopped Responding
+*Symptoms: UI shows "Connection Refused" or "Backend Offline".*
 
-5) Safe demo fallback
-   - If backend cannot be restored within 5 minutes, switch to pre-recorded demo mode (if available) or notify the audience.
-   - Inform stakeholders and resume live demo only after services are healthy.
+1.  **Kill Existing Processes**:
+    - **Windows**: Open Task Manager, find all `python.exe` or `uvicorn` processes and "End Task".
+    - **Linux/Mac**: Run `pkill -f uvicorn`.
+2.  **Restart Backend**:
+    ```bash
+    cd unified_tools_backend
+    uvicorn main:app --host 0.0.0.0 --port 8000
+    ```
+3.  **Verify**: Visit `http://localhost:8000/health` in your browser. It should show `{"status": "healthy"}`.
 
-6) Contact chain
-   - Noopur (Backend)
-   - Seeya (Orchestration)
-   - Chandragupta (Frontend)
-   - Vinayak (External tester)
+---
 
-Keep this document handy during the demo and update it with any site-specific commands.
+## 🔄 Scenario B: Pipeline is Stalled
+*Symptoms: Analysis gets stuck at 0% or a specific stage for >60 seconds.*
+
+1.  **Restart Worker**:
+    If the system uses a background worker (e.g., Celery or a separate thread), restart it:
+    ```bash
+    python queue_worker.py  # (Verify if this is the correct command for your environment)
+    ```
+2.  **Clear Local Cache**:
+    If specific URLs fail, try a different news URL (e.g., from BBC or Reuters) to rule out scraping issues.
+
+---
+
+## 🌐 Scenario C: Frontend UI Glitches
+*Symptoms: Layout is broken, buttons don't click.*
+
+1.  **Restart Frontend**:
+    ```bash
+    cd blackhole-frontend
+    npm run dev -- -p 3002
+    ```
+2.  **Check Port**: Ensure the frontend is running on port **3002** as expected by the demo setup.
+
+---
+
+## 📊 Diagnostic Logs
+If the above steps fail, check these files for the last 5 lines:
+- **Error Details**: `newsai_error_log.json`
+- **Uptime Stats**: `monitor_report.json`
+- **Monitor Service**: `monitor_service.log`
+
+---
+
+## 📞 Emergency Contacts
+| Role | Name | Channel |
+| :--- | :--- | :--- |
+| **Backend** | Noopur | Slack / Internal |
+| **Frontend** | Chandragupta | Slack / Internal |
+| **Demo Lead** | Sankalp | Slack / Internal |
+| **Tester** | Vinayak | Slack / Internal |
+
+---
+*Last Updated: 2026-03-13*

@@ -36,6 +36,68 @@ if hasattr(sys.stderr, "reconfigure"):
 app = FastAPI(title="Unified Tools API", version="2.0.0")
 
 # Enhanced CORS middleware for dashboard compatibility
+# ---------------------------------------------------------
+# SANKALP INTEGRATION: Operational Monitoring Hooks
+# ---------------------------------------------------------
+
+@app.middleware("http")
+async def monitoring_middleware(request: Request, call_next):
+    """Intercepts and logs endpoint failures to newsai_error_log.json"""
+    start_time = time.time()
+    response = await call_next(request)
+    process_time = time.time() - start_time
+    
+    # Log errors (4xx and 5xx) to the centralized monitor log
+    if response.status_code >= 400:
+        error_entry = {
+            "timestamp": datetime.now().isoformat(),
+            "type": "BACKEND_API_ERROR",
+            "method": request.method,
+            "url": str(request.url),
+            "status_code": response.status_code,
+            "process_time": round(process_time, 4)
+        }
+        # Try to append to the log file in the project root
+        try:
+            # Look for the log file in the project root (2 levels up from unified_tools_backend)
+            log_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "newsai_error_log.json"))
+            if os.path.exists(log_path):
+                with open(log_path, "r", encoding="utf-8") as f:
+                    logs = json.load(f)
+                logs.append(error_entry)
+                if len(logs) > 500: logs = logs[-500:]
+                with open(log_path, "w", encoding="utf-8") as f:
+                    json.dump(logs, f, indent=2)
+        except Exception:
+            pass
+            
+    return response
+
+@app.post("/api/monitor/frontend-error")
+async def log_frontend_error(error_data: Dict[str, Any]):
+    """Endpoint for frontend to report UI error signals"""
+    error_entry = {
+        "timestamp": datetime.now().isoformat(),
+        "type": "FRONTEND_UI_ERROR",
+        "details": error_data
+    }
+    try:
+        log_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "newsai_error_log.json"))
+        if os.path.exists(log_path):
+            with open(log_path, "r", encoding="utf-8") as f:
+                logs = json.load(f)
+            logs.append(error_entry)
+            if len(logs) > 500: logs = logs[-500:]
+            with open(log_path, "w", encoding="utf-8") as f:
+                json.dump(logs, f, indent=2)
+    except Exception:
+        pass
+    return {"status": "error_logged"}
+
+# ---------------------------------------------------------
+# ORIGINAL BACKEND LOGIC
+# ---------------------------------------------------------
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
