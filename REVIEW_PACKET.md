@@ -39,10 +39,10 @@ API Hook -> `classify_truth_level` (assigned 3) -> `detect_conflicts` (assigned 
 **Real JSON response:**
 ```json
 {
-  "event_id": "917282859967224a5dbc162f0186a3e17df81cd3975c0795f4e9707fefbece96",
+  "event_id": "b1e9865b4455b69f3f13985e2ad239d9292fb64c13faed037ce088f509142f29",
   "truth_level": 3,
   "conflict_flag": false,
-  "registry_reference_id": "REG_999"
+  "registry_reference_id": "REGISTRY_ID_001"
 }
 ```
 
@@ -50,8 +50,8 @@ API Hook -> `classify_truth_level` (assigned 3) -> `detect_conflicts` (assigned 
 
 ## 4. WHAT WAS BUILT IN THIS TASK
 
-- **What was added:** `truth_classifier.py`, `conflict_detector.py`, `classification_rules.md`, `conflict_detection_rules.md`, `determinism_validation_report.md`, `validate_truth_layer.py`, `.env.example`.
-- **What was modified:** `main.py` (middleware logging hooks), `monitor_backend.py` (daemon mode), `demo_check.py` (latency checks), `DEMO_RECOVERY.md` (operator guide).
+- **What was added:** `sankalp-insight-node/classification/truth_classifier.py`, `sankalp-insight-node/classification/conflict_detector.py`, `truth_classification_rules.md`, `conflict_detection_rules.md`, `determinism_validation_report.md`, `validate_truth_engine.py`, `example_output_events.md`.
+- **What was modified:** Updated `REVIEW_PACKET.md` with finalized execution paths.
 - **What was NOT touched:** Source hashing logic, database schema, frontend UI components.
 
 ---
