@@ -10,13 +10,20 @@ This report confirms the deterministic, replayable nature of the truth classific
 
 ## Test Results Summary
 
+### Case 1: Replayable Event Identity
 | Field | Run 1 | Run 2 (Replay) | Match |
 | :--- | :--- | :--- | :--- |
 | `event_id` | `b1e9865b...` | `b1e9865b...` | ✅ |
 | `source_hash` | `SOURCE_HASH_001` | `SOURCE_HASH_001` | ✅ |
 | `truth_level` | `3` | `3` | ✅ |
 | `conflict_flag` | `false` | `false` | ✅ |
-| `registry_id` | `REGISTRY_ID_001` | `REGISTRY_ID_001` | ✅ |
+
+### Case 2: Structural Conflict Detection (Normalization)
+| Comparison | Expected Result | Actual Result | Status |
+| :--- | :--- | :--- | :--- |
+| `5000` vs `"5000.0"` | No Conflict | No Conflict | ✅ |
+| `False` vs `"False"` | No Conflict | No Conflict | ✅ |
+| `"verified"` vs `"closed"` | **CONFLICT** | **CONFLICT** | ✅ |
 
 ## Determinism Confirmation
 

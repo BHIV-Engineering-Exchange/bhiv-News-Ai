@@ -29,7 +29,7 @@ def classify_truth_level(sources: List[Dict[str, Any]]) -> int:
         return TruthLevel.UNVERIFIED
 
     # Identify unique sources based on source_hash
-    unique_source_hashes = {s.get('source_hash') for s in sources if s.get('source_hash')}
+    unique_source_hashes = {str(s.get('source_hash')).strip() for s in sources if s.get('source_hash')}
     num_unique = len(unique_source_hashes)
 
     # Level 4: Direct documented evidence
@@ -39,8 +39,13 @@ def classify_truth_level(sources: List[Dict[str, Any]]) -> int:
 
     # Level 3: Institutional or primary authority
     # Look for 'is_institutional' flag or high 'authority_score'
-    if any(s.get('is_institutional') is True or s.get('authority_score', 0) >= 0.8 for s in sources):
-        return TruthLevel.INSTITUTIONAL
+    for s in sources:
+        try:
+            score = float(s.get('authority_score', 0))
+        except (ValueError, TypeError):
+            score = 0.0
+        if s.get('is_institutional') is True or score >= 0.8:
+            return TruthLevel.INSTITUTIONAL
 
     # Level 2: Multi-source corroboration
     if num_unique >= 2:

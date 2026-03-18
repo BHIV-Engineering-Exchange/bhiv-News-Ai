@@ -27,24 +27,29 @@ def detect_conflicts(registry_id: str, events: List[Dict[str, Any]]) -> bool:
     if len(relevant_events) < 2:
         return False
 
-    # 1. Check status/outcome contradictions
-    status_values = set()
-    outcome_values = set()
-    for event in relevant_events:
-        if 'status' in event:
-            status_values.add(str(event['status']).lower())
-        if 'outcome' in event:
-            outcome_values.add(str(event['outcome']).lower())
-
-    if len(status_values) > 1 or len(outcome_values) > 1:
-        return True
+    # 1. Check status/outcome contradictions (categorical strings)
+    for attr in ['status', 'outcome', 'verified']:
+        values = set()
+        for event in relevant_events:
+            val = event.get(attr)
+            if val is not None:
+                values.add(str(val).lower().strip())
+        if len(values) > 1:
+            return True
 
     # 2. Check opposing claims (boolean fields)
     for attr in ['is_active', 'is_verified', 'is_complete', 'is_truthful']:
         values = set()
         for event in relevant_events:
             if attr in event:
-                values.add(event[attr])
+                val = event[attr]
+                if isinstance(val, bool):
+                    values.add(val)
+                elif isinstance(val, str):
+                    # Robust string-to-bool mapping for normalization
+                    v_low = val.lower().strip()
+                    if v_low in ['true', '1', 'yes']: values.add(True)
+                    elif v_low in ['false', '0', 'no']: values.add(False)
         if len(values) > 1:
             return True
 
@@ -52,8 +57,14 @@ def detect_conflicts(registry_id: str, events: List[Dict[str, Any]]) -> bool:
     for attr in ['amount', 'count', 'score', 'value']:
         values = set()
         for event in relevant_events:
-            if attr in event:
-                values.add(event[attr])
+            val = event.get(attr)
+            if val is not None:
+                try:
+                    # Normalize to float to handle 500 vs 500.0
+                    values.add(float(val))
+                except (ValueError, TypeError):
+                    # If it's not a number, keep as string for comparison
+                    values.add(str(val).lower().strip())
         if len(values) > 1:
             return True
 

@@ -51,7 +51,41 @@ def run_validation():
     assert event_1["conflict_flag"] == event_2["conflict_flag"]
     assert event_1["registry_reference_id"] == event_2["registry_reference_id"]
     
-    print("\n✅ Determinism Validation Passed: Identical inputs produced identical outputs.")
+    print("\n--- Testing Conflict Detection & Normalization ---")
+    conflicting_source_numeric = source_data.copy()
+    conflicting_source_numeric['amount'] = "5000.0" # Should match 5000
+    
+    events_numeric = [source_data, conflicting_source_numeric]
+    # We need to set a dummy amount in source_data for this test
+    source_data['amount'] = 5000
+    conflicting_source_numeric['registry_reference_id'] = "REG_NUM_TEST"
+    source_data['registry_reference_id'] = "REG_NUM_TEST"
+    
+    conflict_numeric = detect_conflicts("REG_NUM_TEST", events_numeric)
+    print(f"Conflict Flag for 5000 vs '5000.0': {conflict_numeric}")
+    assert conflict_numeric is False, "FAILED: Numeric normalization failed!"
+    
+    conflicting_source_bool = source_data.copy()
+    conflicting_source_bool['is_active'] = "False" # Should match False boolean
+    source_data['is_active'] = False
+    conflicting_source_bool['registry_reference_id'] = "REG_BOOL_TEST"
+    source_data['registry_reference_id'] = "REG_BOOL_TEST"
+    
+    conflict_bool = detect_conflicts("REG_BOOL_TEST", [source_data, conflicting_source_bool])
+    print(f"Conflict Flag for False vs 'False': {conflict_bool}")
+    assert conflict_bool is False, "FAILED: Boolean normalization failed!"
+
+    real_conflict = source_data.copy()
+    real_conflict['status'] = "closed" # Contradicts "verified"
+    source_data['status'] = "verified"
+    real_conflict['registry_reference_id'] = "REG_CONFLICT_TEST"
+    source_data['registry_reference_id'] = "REG_CONFLICT_TEST"
+    
+    conflict_real = detect_conflicts("REG_CONFLICT_TEST", [source_data, real_conflict])
+    print(f"Conflict Flag for 'verified' vs 'closed': {conflict_real}")
+    assert conflict_real is True, "FAILED: Real conflict not detected!"
+
+    print("✅ All Conflict Logic Passed.")
 
 if __name__ == "__main__":
     run_validation()
