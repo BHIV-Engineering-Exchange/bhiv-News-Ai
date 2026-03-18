@@ -15,12 +15,12 @@ FastAPI server hosting truth ingestion hooks and monitoring middleware.
 ## 2. CORE EXECUTION FLOW (MAX 3 FILES ONLY)
 
 **File 1:**
-Path: `c:\Users\user11\Desktop\NEWS AI\News-Ai-main\News-Ai-main\repo-clone\single_pipeline\truth_classifier.py`
-What it does: Deterministic classification of truth signals (Levels 0–4) based on source authority and evidence flags.
+Path: `c:\Users\user11\Desktop\NEWS AI\News-Ai-main\sankalp-insight-node\classification\truth_classifier.py`
+What it does: Deterministic rule-based classification of truth signals (Levels 0–4).
 
 **File 2:**
-Path: `c:\Users\user11\Desktop\NEWS AI\News-Ai-main\News-Ai-main\repo-clone\single_pipeline\conflict_detector.py`
-What it does: Identifies structural contradictions (numeric, categorical, boolean) for events sharing the same `registry_reference_id`.
+Path: `c:\Users\user11\Desktop\NEWS AI\News-Ai-main\sankalp-insight-node\classification\conflict_detector.py`
+What it does: Detects structural contradictions for identical registry_reference_id without resolution.
 
 **File 3:**
 Path: `c:\Users\user11\Desktop\NEWS AI\News-Ai-main\monitor_backend.py`
