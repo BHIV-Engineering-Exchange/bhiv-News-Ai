@@ -69,11 +69,24 @@ API Hook -> `classify_truth_level` (assigned 3) -> `detect_conflicts` (assigned 
 
 **Console output:**
 ```text
---- Starting Determinism Validation ---
-Event 1: { "event_id": "91728285...", "truth_level": 3, "conflict_flag": false }
-Event 2: { "event_id": "91728285...", "truth_level": 3, "conflict_flag": false }
-✅ PASSED: Identical inputs produced identical outputs.
---- Testing Conflict Detection ---
-Conflict Flag for incompatible numeric values: True
-✅ PASSED: Conflict detected correctly.
+Event 1: {
+  "event_id": "b1e9865b4455b69f3f13985e2ad239d9292fb64c13faed037ce088f509142f29",
+  "source_hash": "SOURCE_HASH_001",
+  "truth_level": 3,
+  "conflict_flag": false,
+  "registry_reference_id": "REGISTRY_ID_001"
+}
+Event 2: {
+  "event_id": "b1e9865b4455b69f3f13985e2ad239d9292fb64c13faed037ce088f509142f29",
+  "source_hash": "SOURCE_HASH_001",
+  "truth_level": 3,
+  "conflict_flag": false,
+  "registry_reference_id": "REGISTRY_ID_001"
+}
+
+--- Testing Conflict Detection & Normalization ---
+Conflict Flag for 5000 vs '5000.0': False
+Conflict Flag for False vs 'False': False
+Conflict Flag for 'verified' vs 'closed': True
+✅ All Conflict Logic Passed.
 ```
