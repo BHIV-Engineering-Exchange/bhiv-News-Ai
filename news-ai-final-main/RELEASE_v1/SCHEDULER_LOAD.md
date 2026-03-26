@@ -1,9 +1,0 @@
-- Run Policy
-  - Event-driven pipeline; enrichment async; publish when reward meets threshold
-  - Batch: POST /api/bhiv/stream for distribution
-- Scheduler
-  - External scheduler can call /api/agents/orchestrate for queued items
-  - No internal cron; use platform scheduler or PM2
-- Load Sanity
-  - Light test: create 10 items, verify publish rate ≥ 80%, avg iterations ≤ 2
-  - Use GET /api/system/info to capture stats
