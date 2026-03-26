@@ -1,0 +1,248 @@
+{
+  "truth_signals": [
+    {
+      "event_id": "evt_monsoon_2026_001",
+      "registry_reference_id": "REG_WEATHER_2026_03",
+      "truth_intelligence": {
+        "truth_classification": {
+          "truth_level": 3,
+          "truth_level_name": "INSTITUTIONAL",
+          "source_count": 3,
+          "unique_source_count": 3
+        },
+        "source_reliability": {
+          "pib_source": {
+            "source_id": "pib_source",
+            "reliability_score": 0.95,
+            "citation_count": 12,
+            "is_reliable": true,
+            "reliability_tier": "VERY_HIGH",
+            "total_reports": 45,
+            "verified_reports": 43,
+            "false_reports": 2
+          },
+          "imd_source": {
+            "source_id": "imd_source",
+            "reliability_score": 0.92,
+            "citation_count": 8,
+            "is_reliable": true,
+            "reliability_tier": "VERY_HIGH",
+            "total_reports": 30,
+            "verified_reports": 28,
+            "false_reports": 2
+          }
+        },
+        "event_matching": {
+          "is_matched": true,
+          "matched_groups": [
+            {
+              "group_id": "a7b3c4d2e8f1",
+              "canonical_event": {
+                "event_id": "evt_imd_monsoon",
+                "title": "IMD Monsoon Prediction 2026",
+                "timestamp": "2026-03-25T09:00:00Z"
+              },
+              "event_count": 3,
+              "match_score": 0.85,
+              "match_reasons": ["entity_overlap", "time_proximity"]
+            }
+          ]
+        },
+        "conflict_detection": {
+          "conflict_flag": true,
+          "conflict_types": ["semantic_contradiction"],
+          "conflicting_fields": ["prediction"]
+        },
+        "truth_resolution": {
+          "truth_level": 3,
+          "truth_level_name": "INSTITUTIONAL",
+          "conflict_flag": true,
+          "confidence_score": 0.72,
+          "confidence_tier": "MEDIUM",
+          "corroborating_sources": 2,
+          "conflicting_sources": 1,
+          "source_reliability_avg": 0.93,
+          "truth_signals": {
+            "prediction": "normal",
+            "alternative_prediction": "below_normal",
+            "confidence_sources": ["IMD", "PIB"],
+            "discrepancy_resolution_required": true
+          }
+        },
+        "processing_timestamp": "2026-03-25T10:30:00Z"
+      }
+    },
+    {
+      "event_id": "evt_gdp_2026_q1",
+      "registry_reference_id": "REG_ECONOMY_2026_GDP",
+      "truth_intelligence": {
+        "truth_classification": {
+          "truth_level": 4,
+          "truth_level_name": "PRIMARY_EVIDENCE",
+          "source_count": 1,
+          "unique_source_count": 1
+        },
+        "source_reliability": {
+          "mospi_source": {
+            "source_id": "mospi_source",
+            "reliability_score": 0.95,
+            "citation_count": 5,
+            "is_reliable": true,
+            "reliability_tier": "VERY_HIGH",
+            "total_reports": 20,
+            "verified_reports": 20,
+            "false_reports": 0
+          }
+        },
+        "event_matching": {
+          "is_matched": false,
+          "matched_groups": []
+        },
+        "conflict_detection": {
+          "conflict_flag": false,
+          "conflict_types": [],
+          "conflicting_fields": []
+        },
+        "truth_resolution": {
+          "truth_level": 4,
+          "truth_level_name": "PRIMARY_EVIDENCE",
+          "conflict_flag": false,
+          "confidence_score": 0.95,
+          "confidence_tier": "VERY_HIGH",
+          "corroborating_sources": 1,
+          "conflicting_sources": 0,
+          "source_reliability_avg": 0.95,
+          "truth_signals": {
+            "primary_evidence_type": "official_document",
+            "document_hash": "sha256_abc123...",
+            "issuing_authority": "Ministry of Statistics and Programme Implementation"
+          }
+        },
+        "processing_timestamp": "2026-03-25T10:35:00Z"
+      }
+    },
+    {
+      "event_id": "evt_election_001",
+      "registry_reference_id": "REG_ELECTION_2026_UP",
+      "truth_intelligence": {
+        "truth_classification": {
+          "truth_level": 2,
+          "truth_level_name": "CORROBORATED",
+          "source_count": 4,
+          "unique_source_count": 4
+        },
+        "source_reliability": {
+          "ec_source": {
+            "source_id": "ec_source",
+            "reliability_score": 0.95,
+            "citation_count": 3,
+            "is_reliable": true,
+            "reliability_tier": "VERY_HIGH",
+            "total_reports": 100,
+            "verified_reports": 100,
+            "false_reports": 0
+          },
+          "toi_source": {
+            "source_id": "toi_source",
+            "reliability_score": 0.82,
+            "citation_count": 15,
+            "is_reliable": true,
+            "reliability_tier": "HIGH",
+            "total_reports": 200,
+            "verified_reports": 185,
+            "false_reports": 15
+          }
+        },
+        "event_matching": {
+          "is_matched": true,
+          "matched_groups": [
+            {
+              "group_id": "b4c5d6e7f8a9",
+              "canonical_event": {
+                "event_id": "evt_election_briefing",
+                "title": "Election Commission Press Briefing"
+              },
+              "event_count": 4,
+              "match_score": 0.92,
+              "match_reasons": ["entity_overlap", "location_match", "time_proximity"]
+            }
+          ]
+        },
+        "conflict_detection": {
+          "conflict_flag": false,
+          "conflict_types": [],
+          "conflicting_fields": []
+        },
+        "truth_resolution": {
+          "truth_level": 2,
+          "truth_level_name": "CORROBORATED",
+          "conflict_flag": false,
+          "confidence_score": 0.88,
+          "confidence_tier": "HIGH",
+          "corroborating_sources": 4,
+          "conflicting_sources": 0,
+          "source_reliability_avg": 0.89,
+          "truth_signals": {
+            "corroboration_details": "4 independent sources confirm voting date",
+            "cross_verified": true
+          }
+        },
+        "processing_timestamp": "2026-03-25T10:40:00Z"
+      }
+    },
+    {
+      "event_id": "evt_health_001",
+      "registry_reference_id": "REG_HEALTH_2026_VACCINE",
+      "truth_intelligence": {
+        "truth_classification": {
+          "truth_level": 0,
+          "truth_level_name": "UNVERIFIED",
+          "source_count": 0,
+          "unique_source_count": 0
+        },
+        "source_reliability": {},
+        "event_matching": {
+          "is_matched": false,
+          "matched_groups": []
+        },
+        "conflict_detection": {
+          "conflict_flag": false,
+          "conflict_types": [],
+          "conflicting_fields": []
+        },
+        "truth_resolution": {
+          "truth_level": 0,
+          "truth_level_name": "UNVERIFIED",
+          "conflict_flag": false,
+          "confidence_score": 0.0,
+          "confidence_tier": "VERY_LOW",
+          "corroborating_sources": 0,
+          "conflicting_sources": 0,
+          "source_reliability_avg": 0.0,
+          "truth_signals": {
+            "status": "awaiting_verification",
+            "requires_manual_review": true
+          }
+        },
+        "processing_timestamp": "2026-03-25T10:45:00Z"
+      }
+    }
+  ],
+  "pipeline_metadata": {
+    "pipeline_version": "1.0.0",
+    "truth_intelligence_version": "1.0.0",
+    "processed_at": "2026-03-25T10:45:00Z",
+    "total_events": 4,
+    "truth_distribution": {
+      "PRIMARY_EVIDENCE": 1,
+      "INSTITUTIONAL": 1,
+      "CORROBORATED": 1,
+      "SINGLE_SOURCE": 0,
+      "UNVERIFIED": 1
+    },
+    "conflict_summary": {
+      "events_with_conflicts": 1,
+      "conflict_types_detected": ["semantic_contradiction"]
+    }
+  }
+}
