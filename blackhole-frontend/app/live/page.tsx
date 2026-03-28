@@ -1,17 +1,17 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Header from '@/components/Header'
-import BackendStatus from '@/components/BackendStatus'
-import LiveFeedViewer from '@/components/LiveFeedViewer'
-import TTSPlayer from '@/components/TTSPlayer'
-import PipelineViewer from '@/components/PipelineViewer'
-import AIInsights from '@/components/AIInsights'
-import FeedbackPanel from '@/components/FeedbackPanel'
-import { checkBackendHealth, getDetailedPipelineStatus } from '@/lib/api'
-import apiService from '@/services/api'
+import Header from '../../components/Header'
+import BackendStatus from '../../components/BackendStatus'
+import LiveFeedViewer from '../../components/LiveFeedViewer'
+import TTSPlayer from '../../components/TTSPlayer'
+import PipelineViewer from '../../components/PipelineViewer'
+import AIInsights from '../../components/AIInsights'
+import FeedbackPanel from '../../components/FeedbackPanel'
+import { checkBackendHealth, getDetailedPipelineStatus } from '../../lib/api'
+import apiService from '../../services/api'
 import { Filter, LayoutGrid } from 'lucide-react'
-import { useWebSocket } from '@/hooks/useWebSocket'
+import { useWebSocket } from '../../hooks/useWebSocket'
 
 export default function LiveDashboard() {
   const [backendStatus, setBackendStatus] = useState<'online' | 'offline' | 'checking'>('checking')
