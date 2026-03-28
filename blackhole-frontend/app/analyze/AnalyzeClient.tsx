@@ -1,13 +1,13 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Header from '@/components/Header'
-import NewsAnalysisCard from '@/components/NewsAnalysisCard'
-import VideoPlayer from '@/components/VideoPlayer'
-import ResultsDisplay from '@/components/ResultsDisplay'
-import BackendStatus from '@/components/BackendStatus'
-import { checkBackendHealth, runUnifiedWorkflow, WorkflowResult } from '@/lib/api'
-import { saveScrapedNews, getSavedNews } from '@/lib/newsStorage'
+import Header from '../../components/Header'
+import NewsAnalysisCard from '../../components/NewsAnalysisCard'
+import VideoPlayer from '../../components/VideoPlayer'
+import ResultsDisplay from '../../components/ResultsDisplay'
+import BackendStatus from '../../components/BackendStatus'
+import { checkBackendHealth, runUnifiedWorkflow, WorkflowResult } from '../../lib/api'
+import { saveScrapedNews, getSavedNews } from '../../lib/newsStorage'
 
 interface AnalysisResults {
   scraped_data?: {
