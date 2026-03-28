@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import Header from '@/components/Header'
-import BackendStatus from '@/components/BackendStatus'
-import { checkBackendHealth, initiateNewsAnalysis, triggerPipeline, getDetailedPipelineStatus, getNewsItemById } from '@/lib/api'
-import TTSPlayer from '@/components/TTSPlayer'
-import { useWebSocket } from '@/hooks/useWebSocket'
+import BackendStatus from '../../components/BackendStatus'
+import { checkBackendHealth, initiateNewsAnalysis, triggerPipeline, getDetailedPipelineStatus, getNewsItemById } from '../../lib/api'
+import TTSPlayer from '../../components/TTSPlayer'
+import { useWebSocket } from '../../hooks/useWebSocket'
 import {
   Zap,
   Globe,
