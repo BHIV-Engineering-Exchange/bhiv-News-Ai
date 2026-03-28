@@ -1,0 +1,106 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Truth Intelligence Ingestion Contract v1",
+  "description": "Canonical schema for deterministic, replayable event ingestion pipeline",
+  "version": "1.0.0",
+  "type": "object",
+  "required": [
+    "source_url",
+    "source_hash",
+    "ingestion_timestamp",
+    "raw_content",
+    "truth_level",
+    "conflict_flag",
+    "registry_reference_id",
+    "event_id",
+    "geo_normalized"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "description": "Deterministic event identifier (SHA-256 hash of source_hash + registry_reference_id)",
+      "pattern": "^[a-f0-9]{64}$",
+      "minLength": 64,
+      "maxLength": 64
+    },
+    "source_url": {
+      "type": "string",
+      "description": "Original source URL",
+      "format": "uri",
+      "minLength": 10,
+      "maxLength": 2000
+    },
+    "source_hash": {
+      "type": "string",
+      "description": "SHA-256 hash of raw_content (pre-parse, deterministic)",
+      "pattern": "^[a-f0-9]{64}$",
+      "minLength": 64,
+      "maxLength": 64
+    },
+    "ingestion_timestamp": {
+      "type": "string",
+      "description": "ISO 8601 timestamp of ingestion",
+      "format": "date-time"
+    },
+    "raw_content": {
+      "type": "string",
+      "description": "Raw, unprocessed content from source",
+      "minLength": 1,
+      "maxLength": 100000
+    },
+    "registry_reference_id": {
+      "type": "string",
+      "description": "Canonical registry reference for grouping related events",
+      "pattern": "^REG_[A-Z_]{5,30}$",
+      "minLength": 10,
+      "maxLength": 40
+    },
+    "truth_level": {
+      "type": "integer",
+      "description": "Truth classification level (0-4)",
+      "enum": [0, 1, 2, 3, 4],
+      "title": "Truth Levels: 0=UNVERIFIED, 1=SINGLE_SOURCE, 2=CORROBORATED, 3=INSTITUTIONAL, 4=PRIMARY_EVIDENCE"
+    },
+    "conflict_flag": {
+      "type": "boolean",
+      "description": "True if contradictions detected with other events in registry"
+    },
+    "geo_normalized": {
+      "type": ["object", "null"],
+      "description": "Standardized geographic data or null if unresolvable",
+      "additionalProperties": false,
+      "properties": {
+        "country_code": {
+          "type": "string",
+          "description": "ISO 3166-1 alpha-2 country code",
+          "pattern": "^[A-Z]{2}$",
+          "maxLength": 2
+        },
+        "region": {
+          "type": ["string", "null"],
+          "description": "State/province/region name",
+          "maxLength": 100
+        },
+        "latitude": {
+          "type": ["number", "null"],
+          "description": "Latitude coordinate",
+          "minimum": -90,
+          "maximum": 90
+        },
+        "longitude": {
+          "type": ["number", "null"],
+          "description": "Longitude coordinate",
+          "minimum": -180,
+          "maximum": 180
+        },
+        "confidence": {
+          "type": ["number", "null"],
+          "description": "Confidence score for geo normalization (0-1)",
+          "minimum": 0,
+          "maximum": 1
+        }
+      }
+    }
+  }
+}
