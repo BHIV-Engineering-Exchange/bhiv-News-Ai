@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s -X POST http://127.0.0.1:8000/api/samachar/process -H \"Content-Type: application/json\" -d \"{\"\"text\"\": \"\"Breaking: Tech giant Apple announces record quarterly earnings with iPhone sales surging 25 percent year over year.\"\"}\")",
+      "Bash(curl:*)",
+      "Bash(python api/samachar_api.py)",
+      "Bash(netstat -ano)",
+      "Bash(taskkill //F //PID 2580)",
+      "Bash(taskkill //F //PID 22288)",
+      "Bash(taskkill //F //PID 9068)",
+      "Bash(python test_api.py)",
+      "Bash(cp:*)",
+      "Bash(python -m uvicorn main:app --reload --host 0.0.0.0 --port 8000)",
+      "Bash(npm run:*)",
+      "Bash(npm install:*)",
+      "Bash(npx prisma:*)",
+      "Bash(python replay_test.py)",
+      "Bash(set PYTHONIOENCODING=utf-8)",
+      "Bash(python -c \":*)",
+      "Bash(ls -la truth_intelligence/*.md truth_signals.json)",
+      "Bash(ls -la TRUTH_INTELLIGENCE*.md)",
+      "Bash(python test_truth_intelligence.py)"
+    ]
+  }
+}
