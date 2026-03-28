@@ -11,3 +11,4 @@ PyJWT==2.9.0
 selenium==4.27.1
 webdriver-manager==4.0.2
 httpx==0.27.2
+jsonschema>=4.20.0

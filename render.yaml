@@ -5,7 +5,7 @@ services:
     runtime: python
     region: oregon
     plan: free
-    branch: master
+    branch: main
     rootDir: unified_tools_backend
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
@@ -17,11 +17,11 @@ services:
       - key: ENABLE_GROK
         value: "0"
       - key: OLLAMA_BASE_URL
-        value: "https://249b3496e9d6.ngrok-free.app"
+        fromSecret: OLLAMA_BASE_URL
       - key: OLLAMA_MODEL
         value: "llama3.1"
       - key: BLACKHOLE_LLM_URL
-        value: "https://d52770bec07e.ngrok-free.app"
+        fromSecret: BLACKHOLE_LLM_URL
       - key: BLACKHOLE_LLM_MODEL
         value: "llama3.1"
     healthCheckPath: /health
@@ -32,27 +32,12 @@ services:
     runtime: node
     region: oregon
     plan: free
-    branch: master
+    branch: main
     rootDir: blackhole-frontend
     buildCommand: npm ci --include=dev && npm run build
     startCommand: npm start
     envVars:
       - key: NODE_VERSION
         value: 20.11.0
-      - key: NEXT_PUBLIC_NOOPUR_API_BASE
-        fromService:
-          type: web
-          name: news-ai-backend
-          envVarKey: RENDER_EXTERNAL_URL
-      - key: NEXT_PUBLIC_SANKALP_API_BASE
-        fromService:
-          type: web
-          name: news-ai-backend
-          envVarKey: RENDER_EXTERNAL_URL
-      - key: NEXT_PUBLIC_SEEYA_API_BASE
-        fromService:
-          type: web
-          name: news-ai-backend
-          envVarKey: RENDER_EXTERNAL_URL
       - key: NEXT_PUBLIC_ENV
         value: production
