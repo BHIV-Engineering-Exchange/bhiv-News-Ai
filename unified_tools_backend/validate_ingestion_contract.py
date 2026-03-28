@@ -14,6 +14,7 @@ from datetime import datetime
 # Load the canonical schema
 SCHEMA_PATH = os.path.join(
     os.path.dirname(__file__),
+    "..",
     "ingestion_contract_v1.json"
 )
 

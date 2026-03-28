@@ -52,7 +52,7 @@
     "registry_reference_id": {
       "type": "string",
       "description": "Canonical registry reference for grouping related events",
-      "pattern": "^REG_[A-Z_]{5,30}$",
+      "pattern": "^REG_[A-Z0-9_]{5,30}$",
       "minLength": 10,
       "maxLength": 40
     },

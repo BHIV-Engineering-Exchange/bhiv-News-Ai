@@ -1,0 +1,61 @@
+{
+  "monitor_report": {
+    "generated_at": "2026-03-28T04:46:07.190304",
+    "health_status": "CRITICAL",
+    "metrics": {
+      "ingestion_health": {
+        "total_ingested": 0,
+        "successful": 0,
+        "failed": 0,
+        "success_rate": 0.0
+      },
+      "schema_validation": {
+        "total_validated": 0,
+        "passed": 0,
+        "failed": 0,
+        "failure_reasons": {}
+      },
+      "truth_classification": {
+        "total_classified": 0,
+        "level_distribution": {
+          "0": 0,
+          "1": 0,
+          "2": 0,
+          "3": 0,
+          "4": 0
+        },
+        "failures": 0
+      },
+      "conflict_detection": {
+        "total_checked": 0,
+        "conflicts_found": 0,
+        "conflicts_rate": 0.0,
+        "failures": 0
+      },
+      "geo_normalization": {
+        "total_normalized": 0,
+        "resolved": 0,
+        "null_resolution": 0,
+        "resolution_rate": 0.0
+      },
+      "event_timestamps": {
+        "first_event": null,
+        "last_event": null,
+        "events_per_minute": 0.0
+      }
+    },
+    "summary": {
+      "total_ingested": 0,
+      "success_rate": "0.00%",
+      "conflict_rate": "0.00%",
+      "geo_resolution_rate": "0.00%",
+      "truth_level_distribution": {
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0
+      }
+    }
+  }
+}

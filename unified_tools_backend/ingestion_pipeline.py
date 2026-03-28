@@ -40,7 +40,8 @@ except ImportError:
 
 # Import Truth Intelligence modules
 import sys
-sys.path.insert(0, '..')
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 try:
     from truth_intelligence.truth_classifier import classify_truth_level
     from truth_intelligence.conflict_detector import detect_conflicts, get_event_conflict_metadata
