@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import Header from '@/components/Header'
-import BackendStatus from '@/components/BackendStatus'
-import { checkBackendHealth, getSankalpFeed, type SankalpItem } from '@/lib/api'
-import { getSavedNews, removeSavedNews, SavedNewsItem } from '@/lib/newsStorage'
+import Header from '../../components/Header'
+import BackendStatus from '../../components/BackendStatus'
+import { checkBackendHealth, getSankalpFeed, type SankalpItem } from '../../lib/api'
+import { getSavedNews, removeSavedNews, SavedNewsItem } from '../../lib/newsStorage'
 import { Search, Filter, TrendingUp, Clock, Globe, Newspaper, Trash2, PlayCircle, X } from 'lucide-react'
 
 interface NewsItem {

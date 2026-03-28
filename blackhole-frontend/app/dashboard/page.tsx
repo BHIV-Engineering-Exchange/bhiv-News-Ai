@@ -1,9 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Header from '@/components/Header'
-import BackendStatus from '@/components/BackendStatus'
-import { checkBackendHealth } from '@/lib/api'
+import Header from '../../components/Header'
+import BackendStatus from '../../components/BackendStatus'
+import { checkBackendHealth } from '../../lib/api'
 import { Activity, Clock, Users, TrendingUp, FileText, Shield, Video, Zap } from 'lucide-react'
 
 export default function Dashboard() {
