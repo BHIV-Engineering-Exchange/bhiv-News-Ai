@@ -4,9 +4,10 @@
   "private": true,
 
   "scripts": {
-    "dev": "cd blackhole-frontend && npm run dev",
-    "build": "cd blackhole-frontend && npm run build",
-    "start": "cd blackhole-frontend && npm run start"
+    "dev": "npm --prefix blackhole-frontend run dev",
+    "prebuild": "npm --prefix blackhole-frontend install --legacy-peer-deps",
+    "build": "npm --prefix blackhole-frontend run build",
+    "start": "npm --prefix blackhole-frontend run start"
   },
 
   "dependencies": {
