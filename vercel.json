@@ -1,1 +1,11 @@
-{"rewrites":[{"source":"/(.*)","destination":"/index.html"}]}
+{
+	"buildCommand": "npm --prefix blackhole-frontend install --legacy-peer-deps && npm --prefix blackhole-frontend run build",
+	"outputDirectory": "blackhole-frontend/.next",
+	"framework": "nextjs",
+	"rewrites": [
+		{
+			"source": "/api/:path*",
+			"destination": "/api/:path*"
+		}
+	]
+}
