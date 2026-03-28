@@ -4,9 +4,9 @@
   "private": true,
 
   "scripts": {
-    "dev": "next dev",
-    "build": "npx prisma generate --schema=blackhole-frontend/prisma/schema.prisma && next build",
-    "start": "next start"
+    "dev": "cd blackhole-frontend && npm run dev",
+    "build": "cd blackhole-frontend && npm run build",
+    "start": "cd blackhole-frontend && npm run start"
   },
 
   "dependencies": {
