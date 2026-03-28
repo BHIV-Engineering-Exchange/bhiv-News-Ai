@@ -5,7 +5,7 @@
 
   "scripts": {
     "dev": "next dev",
-    "build": "npx prisma generate && next build",
+    "build": "npx prisma generate --schema=blackhole-frontend/prisma/schema.prisma && next build",
     "start": "next start"
   },
 
@@ -22,5 +22,8 @@
     "eslint": "^8.57.0",
     "@types/react": "^18.2.45",
     "@types/node": "^20.11.30"
+  },
+  "prisma": {
+    "schema": "blackhole-frontend/prisma/schema.prisma"
   }
 }
