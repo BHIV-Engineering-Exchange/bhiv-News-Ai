@@ -5,11 +5,11 @@ echo ""
 
 # Generate Prisma client
 echo "📦 Generating Prisma client..."
-npx prisma generate
+npx prisma@6.19.2 generate --schema=prisma/schema.prisma
 
 # Push database schema
 echo "🗄️  Pushing database schema..."
-npx prisma db push
+npx prisma@6.19.2 db push --schema=prisma/schema.prisma
 
 echo ""
 echo "✅ Setup complete!"
