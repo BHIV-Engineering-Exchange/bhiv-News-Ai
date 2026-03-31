@@ -79,6 +79,32 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Database initialization at startup
+@app.on_event("startup")
+async def startup_db():
+    """Initialize MongoDB connection at app startup"""
+    from database import init_db, is_db_ready
+    try:
+        init_db()
+        if is_db_ready():
+            print("✓ Database initialized successfully at startup", file=sys.stderr)
+        else:
+            print("⚠ Database initialization attempted but connection not verified", file=sys.stderr)
+    except Exception as e:
+        print(f"⚠ Database initialization warning (non-blocking): {e}", file=sys.stderr)
+        # App continues to run - API can handle gracefully
+
+@app.on_event("shutdown")
+async def shutdown_db():
+    """Close MongoDB connection on app shutdown"""
+    from database import get_db as get_db_manager
+    try:
+        db = get_db_manager()
+        if db:
+            db.close()
+    except Exception as e:
+        print(f"Warning: Error during database shutdown: {e}", file=sys.stderr)
+
 # JWT Security Configuration
 SECRET_KEY = os.getenv("JWT_SECRET_KEY", secrets.token_urlsafe(32))
 ALGORITHM = "HS256"
@@ -6675,7 +6701,7 @@ class ScrapedNewsItem(BaseModel):
     insights: Optional[dict] = None
     relatedVideos: Optional[List[dict]] = None
 
-from database import db_manager, get_db, DatabaseManager
+from database import get_db, DatabaseManager
 
 # In-memory storage for scraped news (replace with database in production)
 # scraped_news_db: List[ScrapedNewsItem] = []
