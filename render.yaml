@@ -12,6 +12,8 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.0
+      - key: MONGODB_URL
+        fromSecret: MONGODB_URL
       - key: ENABLE_OPENAI
         value: "0"
       - key: ENABLE_GROK
@@ -34,10 +36,18 @@ services:
     plan: free
     branch: main
     rootDir: blackhole-frontend
-    buildCommand: npm ci --include=dev && npm run build
+    buildCommand: npm ci --include=dev && npx prisma@6.19.2 generate --schema=prisma/schema.prisma && npx prisma@6.19.2 migrate deploy --schema=prisma/schema.prisma && next build
     startCommand: npm start
     envVars:
       - key: NODE_VERSION
         value: 20.11.0
       - key: NEXT_PUBLIC_ENV
         value: production
+      - key: DATABASE_URL
+        fromSecret: DATABASE_URL
+      - key: NEXT_PUBLIC_NOOPUR_API_BASE
+        fromSecret: NEXT_PUBLIC_NOOPUR_API_BASE
+      - key: NEXT_PUBLIC_SANKALP_API_BASE
+        fromSecret: NEXT_PUBLIC_SANKALP_API_BASE
+      - key: NEXT_PUBLIC_API_URL
+        value: "https://news-ai-backend.onrender.com"

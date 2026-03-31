@@ -1,11 +1,5 @@
 {
-	"buildCommand": "npm --prefix blackhole-frontend install --legacy-peer-deps && npx --prefix blackhole-frontend prisma generate --schema=blackhole-frontend/prisma/schema.prisma && npx --prefix blackhole-frontend prisma migrate deploy --schema=blackhole-frontend/prisma/schema.prisma && npm --prefix blackhole-frontend run build",
+	"buildCommand": "npm --prefix blackhole-frontend install --legacy-peer-deps && npx --prefix blackhole-frontend prisma@6.19.2 generate --schema=blackhole-frontend/prisma/schema.prisma && npm --prefix blackhole-frontend run build",
 	"outputDirectory": "blackhole-frontend/.next",
-	"framework": "nextjs",
-	"rewrites": [
-		{
-			"source": "/api/:path*",
-			"destination": "/api/:path*"
-		}
-	]
+	"framework": "nextjs"
 }

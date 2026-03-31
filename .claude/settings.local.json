@@ -19,7 +19,9 @@
       "Bash(python -c \":*)",
       "Bash(ls -la truth_intelligence/*.md truth_signals.json)",
       "Bash(ls -la TRUTH_INTELLIGENCE*.md)",
-      "Bash(python test_truth_intelligence.py)"
+      "Bash(python test_truth_intelligence.py)",
+      "Bash(npm cache:*)",
+      "Bash(python -c \"from main import app; print\\(''Backend imports OK''\\)\")"
     ]
   }
 }
