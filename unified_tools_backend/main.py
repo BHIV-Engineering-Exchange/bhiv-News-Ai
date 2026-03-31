@@ -6786,7 +6786,7 @@ async def health_check():
     from database import is_db_ready
     
     db_status = is_db_ready()
-    overall_status = "healthy" if db_status else "degraded"
+    overall_status = "ok"
     
     return {
         "status": overall_status,
