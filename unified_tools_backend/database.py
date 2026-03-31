@@ -1,4 +1,5 @@
 import os
+import sys
 from datetime import datetime, timedelta
 from typing import List, Dict, Any, Optional
 import asyncio
@@ -6,29 +7,86 @@ from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure, ServerSelectionTimeoutError
 from dotenv import load_dotenv
 
+# Load environment variables from .env file (development)
 load_dotenv()
 
 class DatabaseManager:
     def __init__(self):
         """Initialize MongoDB connection from environment"""
-        self.mongodb_url = os.getenv("MONGODB_URL", "mongodb://localhost:27017")
+        self.mongodb_url = os.getenv("MONGODB_URL")
         self.database_name = os.getenv("DATABASE_NAME", "news_ai_db")
         self.client = None
         self.db = None
+        
+        # Validate required environment variable
+        if not self.mongodb_url:
+            error_msg = (
+                "ERROR: MONGODB_URL environment variable is not set.\n"
+                "Required for production deployment on Render.\n"
+                "Please set MONGODB_URL in Render environment variables.\n"
+                "Connection string must include:"
+                "  - Username and password (URL-encoded)\n"
+                "  - MongoDB Atlas cluster URL\n"
+                "Example: mongodb+srv://user:pass%40word@cluster.mongodb.net/?appName=YourApp"
+            )
+            print(error_msg, file=sys.stderr)
+            raise EnvironmentError(error_msg)
+        
+        # Log connection attempt (mask password for security)
+        masked_url = self._mask_connection_string(self.mongodb_url)
+        print(f"Attempting MongoDB connection: {masked_url}")
         self._connect()
     
+    def _mask_connection_string(self, url: str) -> str:
+        """Mask password in connection string for logging"""
+        import re
+        return re.sub(r'(mongodb\+srv://[^:]+:)([^@]+)(@)', r'\1***\3', url)
+    
     def _connect(self):
-        """Establish MongoDB connection"""
+        """Establish MongoDB connection with retry logic"""
         try:
-            self.client = MongoClient(self.mongodb_url, serverSelectionTimeoutMS=5000)
-            # Verify connection
+            print("Initializing PyMongo client...", file=sys.stderr)
+            self.client = MongoClient(
+                self.mongodb_url,
+                serverSelectionTimeoutMS=10000,
+                connectTimeoutMS=10000,
+                socketTimeoutMS=10000,
+                retryWrites=True,
+                maxPoolSize=50,
+                minPoolSize=10
+            )
+            
+            # Verify connection with ping
+            print("Pinging MongoDB server...", file=sys.stderr)
             self.client.admin.command('ping')
+            
             self.db = self.client[self.database_name]
             self._init_collections()
-            print(f"✓ Connected to MongoDB: {self.database_name}")
-        except (ConnectionFailure, ServerSelectionTimeoutError) as e:
-            print(f"✗ MongoDB connection failed: {e}")
-            raise
+            
+            print(f"✓ Successfully connected to MongoDB database: {self.database_name}", file=sys.stderr)
+            print(f"✓ MongoDB collections initialized", file=sys.stderr)
+            
+        except ServerSelectionTimeoutError as e:
+            error_msg = (
+                f"✗ MongoDB Server Selection Timeout: {str(e)}\n"
+                f"MongoDB Atlas might be unreachable or connection parameters are incorrect.\n"
+                f"Verify:\n"
+                f"  1. MONGODB_URL is correctly set in environment\n"
+                f"  2. IP is whitelisted in MongoDB Atlas security settings\n"
+                f"  3. Database user credentials are correct\n"
+                f"  4. Special characters in password are URL-encoded"
+            )
+            print(error_msg, file=sys.stderr)
+            raise ConnectionError(error_msg) from e
+            
+        except ConnectionFailure as e:
+            error_msg = (
+                f"✗ MongoDB Connection Failed: {str(e)}\n"
+                f"Cannot establish connection to MongoDB Atlas.\n"
+                f"Verify MONGODB_URL environment variable."
+            )
+            print(error_msg, file=sys.stderr)
+            raise ConnectionError(error_msg) from e
     
     def _init_collections(self):
         """Initialize collections with indexes"""
@@ -209,16 +267,49 @@ class DatabaseManager:
     def close(self):
         """Close MongoDB connection"""
         if self.client:
-            self.client.close()
-            print("✓ MongoDB connection closed")
+            try:
+                self.client.close()
+                print("✓ MongoDB connection closed", file=sys.stderr)
+            except Exception as e:
+                print(f"Warning: Error closing MongoDB connection: {e}", file=sys.stderr)
     
     def __del__(self):
         """Ensure connection is closed on cleanup"""
-        self.close()
+        try:
+            self.close()
+        except Exception as e:
+            # Silently ignore errors during cleanup
+            pass
 
-# Global database instance
-db_manager = DatabaseManager()
+# Global database instance (lazy initialization)
+_db_manager = None
+_db_connection_error = None
+
+def init_db():
+    """Initialize database connection at app startup"""
+    global _db_manager, _db_connection_error
+    try:
+        _db_manager = DatabaseManager()
+        _db_connection_error = None
+        return _db_manager
+    except (EnvironmentError, ConnectionError) as e:
+        _db_connection_error = str(e)
+        print(f"Database initialization failed: {e}", file=sys.stderr)
+        return None
 
 def get_db() -> DatabaseManager:
     """Get database manager instance"""
-    return db_manager
+    global _db_manager, _db_connection_error
+    if _db_manager is None:
+        if _db_connection_error:
+            raise RuntimeError(f"Database unavailable: {_db_connection_error}")
+        # Try to initialize if not already attempted
+        result = init_db()
+        if result is None:
+            raise RuntimeError("Failed to initialize database connection")
+    return _db_manager
+
+def is_db_ready() -> bool:
+    """Check if database is ready"""
+    global _db_manager
+    return _db_manager is not None
