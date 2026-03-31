@@ -6782,9 +6782,20 @@ async def login(request: LoginRequest):
 
 @app.get("/health")
 async def health_check():
+    """Health check endpoint with detailed service status"""
+    from database import is_db_ready
+    
+    db_status = is_db_ready()
+    overall_status = "healthy" if db_status else "degraded"
+    
     return {
-        "status": "healthy",
+        "status": overall_status,
         "timestamp": datetime.now().isoformat(),
+        "database": {
+            "connected": db_status,
+            "type": "mongodb",
+            "status": "Ready" if db_status else "Unavailable"
+        },
         "security": {
             "jwt_enabled": True,
             "demo_users": list(DEMO_USERS.keys()),
