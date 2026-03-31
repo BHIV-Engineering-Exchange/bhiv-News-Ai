@@ -94,7 +94,7 @@ export async function checkBackendHealth(): Promise<boolean> {
     }
 
     const data = await response.json()
-    return data.status === 'healthy'
+    return data.status === 'ok' || data.status === 'healthy'
   } catch (error) {
     console.error('Backend health check failed:', error)
     return false
