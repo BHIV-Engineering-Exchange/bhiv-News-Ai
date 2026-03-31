@@ -32,7 +32,7 @@ export default function AIVideoGenerator({ newsData, onVideoGenerated }: AIVideo
 
   const checkAIStatus = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/ai-video-status')
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/ai-video-status`)
       const result = await response.json()
       if (result.success) {
         setAiStatus(result.data)
@@ -52,7 +52,7 @@ export default function AIVideoGenerator({ newsData, onVideoGenerated }: AIVideo
     setError(null)
 
     try {
-      const response = await fetch('http://localhost:8000/api/generate-ai-video', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/generate-ai-video`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

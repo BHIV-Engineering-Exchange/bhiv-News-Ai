@@ -218,7 +218,7 @@ export default function WorkflowCard({ onStart, isActive, backendOnline }: Workf
         </div>
         
         <a
-          href="http://localhost:8000/docs"
+          href={`${process.env.NEXT_PUBLIC_API_URL}/docs`}
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center space-x-1 text-sm text-gray-400 hover:text-white transition-colors"

@@ -22,7 +22,7 @@ export default function BackendStatus({ status, onRetry }: BackendStatusProps) {
         </div>
         <div className="flex items-center space-x-2">
           <a
-            href="http://localhost:8000/docs"
+            href={`${process.env.NEXT_PUBLIC_API_URL}/docs`}
             target="_blank"
             rel="noopener noreferrer"
             className="text-green-400 hover:text-green-300 transition-colors"
@@ -114,7 +114,7 @@ export default function BackendStatus({ status, onRetry }: BackendStatusProps) {
             </button>
             
             <a
-              href="http://localhost:8000"
+              href={process.env.NEXT_PUBLIC_API_URL}
               target="_blank"
               rel="noopener noreferrer"
               className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center space-x-2"
