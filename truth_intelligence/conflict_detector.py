@@ -366,37 +366,49 @@ class ConflictDetector:
 
 def detect_conflicts(
     registry_id: str,
-    events: List[Dict[str, Any]]
+    new_entry_or_events,
+    existing: Optional[List[Dict[str, Any]]] = None
 ) -> bool:
     """
-    Convenience function to detect conflicts.
+    Compatibility wrapper for conflict detection.
 
-    Args:
-        registry_id: Registry reference ID
-        events: List of events to check
-
-    Returns:
-        True if conflict detected
+    This function accepts either the modern signature
+    `detect_conflicts(registry_id, events)` where the second argument
+    is a list of events, or the legacy signature used in tests
+    `detect_conflicts(registry_id, new_entry, existing_list)`.
     """
     detector = ConflictDetector()
+    # Legacy call: (registry_id, new_entry, existing_list)
+    if existing is not None:
+        new_entry = dict(new_entry_or_events or {})
+        new_entry.setdefault("registry_reference_id", registry_id)
+        events = [new_entry] + (existing or [])
+    else:
+        # Modern call: (registry_id, events_list)
+        events = new_entry_or_events
+
     return detector.detect_conflicts(registry_id, events)
 
 
 def get_event_conflict_metadata(
     registry_id: str,
-    events: List[Dict[str, Any]]
+    new_entry_or_events,
+    existing: Optional[List[Dict[str, Any]]] = None
 ) -> Dict[str, Any]:
     """
     Get conflict metadata for event ingestion.
 
-    Args:
-        registry_id: Registry reference ID
-        events: List of events to check
-
-    Returns:
-        Dictionary with conflict metadata
+    Accepts both legacy (registry_id, new_entry, existing_list) and modern
+    (registry_id, events_list) call styles.
     """
     detector = ConflictDetector()
+    if existing is not None:
+        new_entry = dict(new_entry_or_events or {})
+        new_entry.setdefault("registry_reference_id", registry_id)
+        events = [new_entry] + (existing or [])
+    else:
+        events = new_entry_or_events
+
     details = detector.detect_conflicts_with_details(registry_id, events)
 
     return {

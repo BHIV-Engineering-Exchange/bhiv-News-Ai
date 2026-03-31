@@ -12,6 +12,8 @@ class TruthLevel:
     CORROBORATED = 2        # Multi-source corroboration (>=2 sources)
     INSTITUTIONAL = 3       # Institutional / primary authority source
     PRIMARY_EVIDENCE = 4    # Direct documented or primary evidence
+    # Backwards-compatible alias used in some tests
+    AUTHORITATIVE = INSTITUTIONAL
 
 # Priority order for classification (highest first)
 _TRUTH_PRIORITY = [
@@ -79,8 +81,15 @@ def _is_institutional(source: Dict[str, Any]) -> bool:
     """Check if source is institutional/authoritative."""
     if source.get('is_institutional') is True:
         return True
+    # Accept both floating authority_score (0.0-1.0) and integer authority_level (1-5)
     if source.get('authority_score', 0) >= 0.8:
         return True
+    if source.get('authority_level') is not None:
+        try:
+            if float(source.get('authority_level')) >= 3:
+                return True
+        except (ValueError, TypeError):
+            pass
     return False
 
 

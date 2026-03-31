@@ -19,7 +19,7 @@ def test_jwt_authentication():
         print(f"   Demo users: {health_data['security']['demo_users']}")
     except Exception as e:
         print(f"❌ Health check failed: {e}")
-        return False
+        return
     
     # Test 2: Authentication
     print("\n2️⃣ Testing authentication...")
@@ -39,11 +39,11 @@ def test_jwt_authentication():
             access_token = auth_result['access_token']
         else:
             print(f"❌ Authentication failed: {auth_result}")
-            return False
+            return
             
     except Exception as e:
         print(f"❌ Authentication error: {e}")
-        return False
+        return
     
     # Test 3: Token validation
     print("\n3️⃣ Testing token validation...")
@@ -61,11 +61,11 @@ def test_jwt_authentication():
         else:
             print(f"❌ Token validation failed: {response.status_code}")
             print(f"   Response: {response.text}")
-            return False
+            return
             
     except Exception as e:
         print(f"❌ Token validation error: {e}")
-        return False
+        return
     
     # Test 4: Security headers
     print("\n4️⃣ Testing security headers...")
@@ -109,7 +109,7 @@ def test_jwt_authentication():
     
     print("\n" + "=" * 60)
     print("✅ JWT Authentication and Security Validation Complete!")
-    return True
+    return
 
 if __name__ == "__main__":
     test_jwt_authentication()

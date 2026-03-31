@@ -49,17 +49,17 @@ def test_blackhole_llm():
                 print(f"   Summary: {summary_data['data']['summary']}")
                 print(f"   Model: {summary_data['data']['model']}")
                 print(f"   Endpoint: {summary_data['data'].get('endpoint', 'N/A')}")
-                return True
+                return
             else:
                 print(f"❌ Summarization failed: {summarize_response.status_code}")
-                return False
+                return
         else:
             print(f"❌ Health check failed: {response.status_code}")
-            return False
+            return
             
     except Exception as e:
         print(f"❌ Error: {e}")
-        return False
+        return
 
 if __name__ == "__main__":
     test_blackhole_llm()

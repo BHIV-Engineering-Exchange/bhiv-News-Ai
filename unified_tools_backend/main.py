@@ -6,10 +6,10 @@ import httpx
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, validator, model_validator
 from typing import List, Optional, Dict, Any
 import jwt
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import secrets
 import pandas as pd
 import numpy as np
@@ -79,8 +79,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Database initialization at startup
-@app.on_event("startup")
 async def startup_db():
     """Initialize MongoDB connection at app startup"""
     from database import init_db, is_db_ready
@@ -94,7 +92,6 @@ async def startup_db():
         print(f"⚠ Database initialization warning (non-blocking): {e}", file=sys.stderr)
         # App continues to run - API can handle gracefully
 
-@app.on_event("shutdown")
 async def shutdown_db():
     """Close MongoDB connection on app shutdown"""
     from database import get_db as get_db_manager
@@ -104,6 +101,9 @@ async def shutdown_db():
             db.close()
     except Exception as e:
         print(f"Warning: Error during database shutdown: {e}", file=sys.stderr)
+
+app.add_event_handler("startup", startup_db)
+app.add_event_handler("shutdown", shutdown_db)
 
 # JWT Security Configuration
 SECRET_KEY = os.getenv("JWT_SECRET_KEY", secrets.token_urlsafe(32))
@@ -121,9 +121,9 @@ security = HTTPBearer()
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
     if expires_delta:
-        expire = datetime.utcnow() + expires_delta
+        expire = datetime.now(timezone.utc) + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(minutes=15)
+        expire = datetime.now(timezone.utc) + timedelta(minutes=15)
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
@@ -299,15 +299,25 @@ class ScrapingRequest(BaseModel):
     selectors: Optional[List[str]] = None
 
 class SummarizingRequest(BaseModel):
-    text: str
+    text: Optional[str] = None
+    content: Optional[str] = None
     max_length: int = 150
     style: str = "concise"
 
-    @validator('text')
-    def text_must_not_be_empty(cls, v):
-        if not v.strip():
-            raise ValueError('text must not be empty')
-        return v
+    @model_validator(mode="before")
+    @classmethod
+    def normalize_text_fields(cls, values):
+        if not isinstance(values, dict):
+            raise ValueError("text must not be empty")
+        if "text" in values:
+            # Existing tests expect empty explicit `text` to fail validation.
+            if values.get("text") is None or not str(values.get("text")).strip():
+                raise ValueError("text must not be empty")
+        elif "content" in values:
+            values["text"] = values.get("content")
+        else:
+            raise ValueError("text must not be empty")
+        return values
 
 class VettingRequest(BaseModel):
     data: Dict[str, Any]
@@ -5801,31 +5811,70 @@ async def validate_url_endpoint(request: Dict[str, Any]):
 
 @app.post("/api/scrape")
 async def scrape_endpoint(request: ScrapingRequest, current_user: dict = Depends(verify_token)):
-    result = await ScrapingService.scrape_website(request.url, request.max_pages)
-    return UnifiedResponse(
-        success=True,
-        data=result,
-        message="Scraping completed successfully",
-        timestamp=datetime.now().isoformat()
-    )
+    try:
+        result = await ScrapingService.scrape_website(request.url, request.max_pages)
+        return UnifiedResponse(
+            success=True,
+            data=result,
+            message="Scraping completed successfully",
+            timestamp=datetime.now().isoformat()
+        )
+    except HTTPException as e:
+        return JSONResponse(
+            status_code=e.status_code,
+            content={
+                "success": False,
+                "detail": e.detail,
+                "timestamp": datetime.now().isoformat()
+            }
+        )
+    except Exception as e:
+        return JSONResponse(
+            status_code=500,
+            content={
+                "success": False,
+                "detail": str(e),
+                "timestamp": datetime.now().isoformat()
+            }
+        )
 
 @app.post("/api/summarize")
 async def summarize_endpoint(request: SummarizingRequest, current_user: dict = Depends(verify_token)):
-    result = await SummarizingService.summarize_text(
-        request.text,
-        request.max_length,
-        request.style
-    )
-    response_data = UnifiedResponse(
-        success=True,
-        data=result,
-        message="Summarization completed successfully",
-        timestamp=datetime.now().isoformat()
-    )
-    return JSONResponse(
-        content=response_data.dict(),
-        headers={"Content-Type": "application/json; charset=utf-8"}
-    )
+    try:
+        result = await SummarizingService.summarize_text(
+            request.text,
+            request.max_length,
+            request.style
+        )
+        payload = {
+            "success": True,
+            "data": result,
+            "summary": result.get("summary", ""),
+            "message": "Summarization completed successfully",
+            "timestamp": datetime.now().isoformat()
+        }
+        return JSONResponse(
+            content=payload,
+            headers={"Content-Type": "application/json; charset=utf-8"}
+        )
+    except HTTPException as e:
+        return JSONResponse(
+            status_code=e.status_code,
+            content={
+                "success": False,
+                "detail": e.detail,
+                "timestamp": datetime.now().isoformat()
+            }
+        )
+    except Exception as e:
+        return JSONResponse(
+            status_code=500,
+            content={
+                "success": False,
+                "detail": str(e),
+                "timestamp": datetime.now().isoformat()
+            }
+        )
 
 @app.post("/api/vet")
 async def vet_endpoint(request: VettingRequest):
@@ -5886,18 +5935,37 @@ async def video_search_endpoint(request: VideoSearchRequest):
 
 @app.post("/api/news-analysis")
 async def news_analysis_endpoint(request: NewsAnalysisRequest, current_user: dict = Depends(verify_token)):
-    result = await PipelineService.process_news_analysis(
-        request.url,
-        request.include_videos,
-        request.max_video_results,
-        request.authenticity_check
-    )
-    return UnifiedResponse(
-        success=True,
-        data=result,
-        message="News analysis completed successfully",
-        timestamp=datetime.now().isoformat()
-    )
+    try:
+        result = await PipelineService.process_news_analysis(
+            request.url,
+            request.include_videos,
+            request.max_video_results,
+            request.authenticity_check
+        )
+        return UnifiedResponse(
+            success=True,
+            data=result,
+            message="News analysis completed successfully",
+            timestamp=datetime.now().isoformat()
+        )
+    except HTTPException as e:
+        return JSONResponse(
+            status_code=e.status_code,
+            content={
+                "success": False,
+                "detail": e.detail,
+                "timestamp": datetime.now().isoformat()
+            }
+        )
+    except Exception as e:
+        return JSONResponse(
+            status_code=500,
+            content={
+                "success": False,
+                "detail": str(e),
+                "timestamp": datetime.now().isoformat()
+            }
+        )
 
 @app.post("/api/authenticity-check")
 async def authenticity_check_endpoint(request: Dict[str, Any]):
@@ -6727,7 +6795,7 @@ async def get_scraped_news(db: DatabaseManager = Depends(get_db)):
 async def save_scraped_news(item: ScrapedNewsItem, db: DatabaseManager = Depends(get_db)):
     """Save a scraped news article"""
     try:
-        db.add_scraped_news(item.dict())
+        db.add_scraped_news(item.model_dump())
         return {
             "success": True,
             "message": "News article saved successfully",
@@ -6783,10 +6851,13 @@ async def login(request: LoginRequest):
 @app.get("/health")
 def health():
     return {
-        "status": "ok",
-        "database": {
-            "connected": True,
-            "type": "postgresql"
+        "status": "healthy",
+        "timestamp": datetime.now().isoformat(),
+        "services": {
+            "database": {
+                "connected": True,
+                "type": "postgresql"
+            }
         }
     }
 

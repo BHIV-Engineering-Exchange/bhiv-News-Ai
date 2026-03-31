@@ -39,7 +39,7 @@ def test_malformed_json(db_manager: DatabaseManager):
     token = get_auth_token()
     headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
     
-    response = client.post("/api/scrape", data="{malformed_json}", headers=headers)
+    response = client.post("/api/scrape", content="{malformed_json}", headers=headers)
     assert response.status_code == 422 # Unprocessable Entity
 
 def test_backend_down(db_manager: DatabaseManager):

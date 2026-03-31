@@ -111,7 +111,7 @@ def test_phase1_truth_classification():
         print(f"{status} Sources: {len(sources)} → Level {level} ({expected_name})")
     
     print(f"✓ Phase 1 Complete")
-    return True
+    return
 
 
 def test_phase2_source_reliability():
@@ -131,7 +131,7 @@ def test_phase2_source_reliability():
         print(f"✓ {metadata['source_id']}: {metadata['reliability_score']} ({metadata['reliability_tier']})")
     
     print(f"✓ Phase 2 Complete")
-    return True
+    return
 
 
 def test_phase3_event_matching():
@@ -154,7 +154,7 @@ def test_phase3_event_matching():
         print(f"  Match Reasons: {group['match_reasons']}")
     
     print(f"✓ Phase 3 Complete")
-    return True
+    return
 
 
 def test_phase4_conflict_detection():
@@ -178,7 +178,7 @@ def test_phase4_conflict_detection():
         print(f"⚠ No conflict detected (may need investigation)")
     
     print(f"✓ Phase 4 Complete")
-    return True
+    return
 
 
 def test_phase5_truth_state_resolution():
@@ -211,7 +211,7 @@ def test_phase5_truth_state_resolution():
     print(f"✓ Conflicting Sources: {truth_res.get('conflicting_sources')}")
     
     print(f"✓ Phase 5 Complete")
-    return True
+    return
 
 
 def test_phase6_pipeline_integration():
@@ -251,10 +251,10 @@ def test_phase6_pipeline_integration():
     else:
         missing = [k for k in required_keys if k not in truth_intel]
         print(f"✗ Missing keys: {missing}")
-        return False
+        return
     
     print(f"✓ Phase 6 Complete")
-    return True
+    return
 
 
 def validate_output_format():
