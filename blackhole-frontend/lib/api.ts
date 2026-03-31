@@ -694,7 +694,7 @@ export function getAudioUrl(audioPath: string): string {
   // Construct URL based on the path structure
   // Sankalp paths usually start with 'data/audio/'
   if (audioPath.includes('data/audio')) {
-    const audioBase = process.env.NEXT_PUBLIC_SANKALP_API_BASE || 'http://localhost:8000'
+    const audioBase = process.env.NEXT_PUBLIC_SANKALP_API_BASE || process.env.NEXT_PUBLIC_API_URL || 'https://news-ai-1l4d.onrender.com'
     const normalizedPath = audioPath.replace(/\\/g, '/')
     const cleanPath = normalizedPath.startsWith('/') ? normalizedPath.slice(1) : normalizedPath
     return `${audioBase}/${cleanPath}`

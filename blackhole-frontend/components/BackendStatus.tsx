@@ -92,13 +92,13 @@ export default function BackendStatus({ status, onRetry }: BackendStatusProps) {
             <h5 className="text-white font-medium mb-2">Expected URLs:</h5>
             <div className="space-y-1 text-sm">
               <div className="text-gray-300">
-                🌐 API: <code className="text-blue-400">http://localhost:8000</code>
+                🌐 API: <code className="text-blue-400">{process.env.NEXT_PUBLIC_API_URL}</code>
               </div>
               <div className="text-gray-300">
-                📚 Docs: <code className="text-blue-400">http://localhost:8000/docs</code>
+                📚 Docs: <code className="text-blue-400">{process.env.NEXT_PUBLIC_API_URL}/docs</code>
               </div>
               <div className="text-gray-300">
-                ❤️ Health: <code className="text-blue-400">http://localhost:8000/health</code>
+                ❤️ Health: <code className="text-blue-400">{process.env.NEXT_PUBLIC_API_URL}/health</code>
               </div>
             </div>
           </div>

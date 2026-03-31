@@ -17,9 +17,9 @@ const nextConfig = {
     return [
       {
         source: '/api/:path*',
-        destination: process.env.NEXT_PUBLIC_NOOPUR_API_BASE
-          ? `${process.env.NEXT_PUBLIC_NOOPUR_API_BASE}/api/:path*`
-          : 'http://localhost:8000/api/:path*',
+        destination: process.env.NEXT_PUBLIC_API_URL
+          ? `${process.env.NEXT_PUBLIC_API_URL}/api/:path*`
+          : 'https://news-ai-1l4d.onrender.com/api/:path*',
       },
     ]
   },

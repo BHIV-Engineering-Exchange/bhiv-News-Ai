@@ -6,7 +6,7 @@
 
 import { buildSecureHeaders } from '../lib/security'
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_NOOPUR_API_BASE || 'http://localhost:8000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_NOOPUR_API_BASE || 'https://news-ai-1l4d.onrender.com';
 
 // Check if real backend is available
 let backendAvailable = false;
