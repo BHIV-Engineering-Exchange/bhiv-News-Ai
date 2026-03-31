@@ -5,12 +5,12 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 3002",
-    "build": "npx prisma@6.19.2 generate && next build",
+    "build": "npx prisma@6.19.2 generate --schema=prisma/schema.prisma && next build",
     "start": "next start",
     "lint": "next lint",
-    "db:migrate": "npx prisma@6.19.2 migrate deploy",
-    "db:push": "npx prisma@6.19.2 db push",
-    "db:studio": "npx prisma@6.19.2 studio"
+    "db:migrate": "npx prisma@6.19.2 migrate deploy --schema=prisma/schema.prisma",
+    "db:push": "npx prisma@6.19.2 db push --schema=prisma/schema.prisma",
+    "db:studio": "npx prisma@6.19.2 studio --schema=prisma/schema.prisma"
   },
   "dependencies": {
     "@emotion/is-prop-valid": "^1.4.0",
