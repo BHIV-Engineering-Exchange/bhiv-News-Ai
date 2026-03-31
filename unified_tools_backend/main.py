@@ -6701,7 +6701,7 @@ class ScrapedNewsItem(BaseModel):
     insights: Optional[dict] = None
     relatedVideos: Optional[List[dict]] = None
 
-from database import db_manager, get_db, DatabaseManager
+from database import get_db, DatabaseManager
 
 # In-memory storage for scraped news (replace with database in production)
 # scraped_news_db: List[ScrapedNewsItem] = []
