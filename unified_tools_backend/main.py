@@ -26,6 +26,7 @@ import re
 import urllib.parse
 from urllib.parse import urlparse, parse_qs
 import sys
+import psycopg2
 
 load_dotenv()
 
@@ -109,6 +110,20 @@ async def shutdown_db():
 SECRET_KEY = os.getenv("JWT_SECRET_KEY", secrets.token_urlsafe(32))
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
+# PostgreSQL Database Connection Check
+def check_db():
+    """Check PostgreSQL (Neon) database connectivity"""
+    try:
+        database_url = os.getenv("DATABASE_URL")
+        if not database_url:
+            return False
+        conn = psycopg2.connect(database_url)
+        conn.close()
+        return True
+    except Exception as e:
+        print(f"Database connection error: {e}", file=sys.stderr)
+        return False
 
 # Demo credentials (for production, use proper user management)
 DEMO_USERS = {
@@ -6782,10 +6797,12 @@ async def login(request: LoginRequest):
 
 @app.get("/health")
 def health():
+    db_connected = check_db()
+    
     return {
-        "status": "ok",
+        "status": "ok" if db_connected else "degraded",
         "database": {
-            "connected": True,
+            "connected": db_connected,
             "type": "postgresql"
         }
     }
