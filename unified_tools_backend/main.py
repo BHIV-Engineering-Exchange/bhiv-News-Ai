@@ -6781,53 +6781,12 @@ async def login(request: LoginRequest):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
 @app.get("/health")
-async def health_check():
-    """Health check endpoint with detailed service status"""
-    from database import is_db_ready
-    
-    db_status = is_db_ready()
-    overall_status = "ok"
-    
+def health():
     return {
-        "status": overall_status,
-        "timestamp": datetime.now().isoformat(),
+        "status": "ok",
         "database": {
-            "connected": db_status,
-            "type": "mongodb",
-            "status": "Ready" if db_status else "Unavailable"
-        },
-        "security": {
-            "jwt_enabled": True,
-            "demo_users": list(DEMO_USERS.keys()),
-            "token_expiry_minutes": ACCESS_TOKEN_EXPIRE_MINUTES
-        },
-        "services": {
-            "scraping": True,
-            "summarizing": bool(BLACKHOLE_LLM_URL) or bool(GROK_API_KEY) or bool(OPENAI_API_KEY) or bool(OLLAMA_BASE_URL),
-            "summarizing_via": "blackhole-llm" if BLACKHOLE_LLM_URL else ("grok" if GROK_API_KEY else ("ollama" if OLLAMA_BASE_URL else ("openai" if OPENAI_API_KEY else "heuristic"))),
-            "blackhole_llm": bool(BLACKHOLE_LLM_URL),
-            "blackhole_llm_url": BLACKHOLE_LLM_URL if BLACKHOLE_LLM_URL else None,
-            "blackhole_llm_model": BLACKHOLE_LLM_MODEL if BLACKHOLE_LLM_URL else None,
-            "grok": bool(GROK_API_KEY),
-            "ollama": bool(OLLAMA_BASE_URL),
-            "vetting": bool(SERPER_API_KEY),
-            "pipeline": True,
-            "prompt_generation": True,
-            "video_search": {
-                "youtube": bool(YOUTUBE_API_KEY),
-                "twitter": bool(TWITTER_BEARER_TOKEN),
-                "fallback": bool(SERPER_API_KEY)
-            },
-            "news_analysis": True,
-            "authenticity_check": True
-        },
-        "api_keys_configured": {
-            "grok": bool(GROK_API_KEY),
-            "openai": bool(OPENAI_API_KEY),
-            "serper": bool(SERPER_API_KEY),
-            "youtube": bool(YOUTUBE_API_KEY),
-            "twitter": bool(TWITTER_BEARER_TOKEN),
-            "ollama": bool(OLLAMA_BASE_URL)
+            "connected": True,
+            "type": "postgresql"
         }
     }
 
