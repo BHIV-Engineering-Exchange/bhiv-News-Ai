@@ -36,7 +36,7 @@ services:
     plan: free
     branch: main
     rootDir: blackhole-frontend
-    buildCommand: npm ci --include=dev && npx prisma@6.19.2 generate --schema=prisma/schema.prisma && npx prisma@6.19.2 migrate deploy --schema=prisma/schema.prisma && next build
+    buildCommand: npm ci --include=dev && npx prisma@6.19.2 generate --schema=prisma/schema.prisma && next build
     startCommand: npm start
     envVars:
       - key: NODE_VERSION

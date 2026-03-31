@@ -1,6 +1,6 @@
 {
     "framework": "nextjs",
-    "buildCommand": "npm install --legacy-peer-deps && npx prisma@6.19.2 generate --schema=prisma/schema.prisma && npx prisma@6.19.2 migrate deploy --schema=prisma/schema.prisma && next build",
+    "buildCommand": "npm install --legacy-peer-deps && npx prisma@6.19.2 generate --schema=prisma/schema.prisma && next build",
     "outputDirectory": ".next",
     "installCommand": "npm install --legacy-peer-deps"
 }
