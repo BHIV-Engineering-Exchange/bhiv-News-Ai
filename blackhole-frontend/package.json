@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 3002",
-    "build": "node -e \"const { spawnSync } = require('child_process'); spawnSync('npx', ['prisma@6.19.2','generate','--schema=prisma/schema.prisma'], { stdio: 'inherit', shell: true });\" && next build",
+    "build": "npx prisma generate && npx prisma migrate deploy && next build",
     "start": "next start",
     "lint": "next lint"
   },
