@@ -38,17 +38,14 @@ except ImportError:
     def record_ingestion(*args, **kwargs): pass
     def get_monitor_report(): return {}
 
-# Import Truth Intelligence modules
+# Import Truth Intelligence modules (mandatory integration; no fallback logic)
 import sys
 import os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
-try:
-    from truth_intelligence.truth_classifier import classify_truth_level
-    from truth_intelligence.conflict_detector import detect_conflicts, get_event_conflict_metadata
-except ImportError:
-    # Fallback: Use mock implementations if truth_intelligence not available
-    def classify_truth_level(sources): return 2
-    def detect_conflicts(registry_id, events): return False
+parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+if parent_dir not in sys.path:
+    sys.path.append(parent_dir)
+from truth_intelligence.truth_classifier import classify_truth_level
+from truth_intelligence.conflict_detector import detect_conflicts
 
 
 class IngestionPipeline:
@@ -102,12 +99,22 @@ class IngestionPipeline:
         truth_level = None
         conflict_flag = False
         geo_resolved = False
+        stage = "input_validation"
         
         try:
+            if not source_url or not isinstance(source_url, str):
+                raise ValueError("source_url must be a non-empty string")
+            if not raw_content or not isinstance(raw_content, str):
+                raise ValueError("raw_content must be a non-empty string")
+            if not registry_reference_id or not isinstance(registry_reference_id, str):
+                raise ValueError("registry_reference_id must be a non-empty string")
+
             # Phase 3: Source Hash Generation (BEFORE parsing)
+            stage = "source_hash_generation"
             source_hash = self.hash_generator.generate_source_hash(raw_content)
             
             # Phase 5: Geo Normalization
+            stage = "geo_normalization"
             geo_normalized = self.geo_normalizer.normalize_location(location)
             geo_resolved = geo_normalized is not None
             
@@ -116,9 +123,11 @@ class IngestionPipeline:
                 sources = [{"source_url": source_url, "is_institutional": False}]
             
             # Integrated Truth Classification
+            stage = "truth_classification"
             truth_level = classify_truth_level(sources)
             
             # Phase 4: Event ID Generation (deterministic)
+            stage = "event_id_generation"
             event_id = self.event_id_generator.generate_event_id(
                 source_hash,
                 registry_reference_id
@@ -128,13 +137,17 @@ class IngestionPipeline:
             ingestion_timestamp = datetime.utcnow().isoformat() + "Z"
             
             # Integrated Conflict Detection
-            # Build a temporary event for conflict checking
+            stage = "conflict_detection"
+            registry_events = [
+                e for e in self.processed_events
+                if e.get("registry_reference_id") == registry_reference_id
+            ]
             temp_event = {
                 "event_id": event_id,
                 "registry_reference_id": registry_reference_id,
-                "prediction": None  # Would be extracted from content
+                "prediction": None
             }
-            conflict_flag = detect_conflicts(registry_reference_id, [temp_event])
+            conflict_flag = detect_conflicts(registry_reference_id, registry_events + [temp_event])
             
             # Build final event record
             event_record = {
@@ -150,9 +163,19 @@ class IngestionPipeline:
             }
             
             # Phase 2: Schema Validation
+            stage = "schema_validation"
             is_valid, error_msg = validate_ingestion_record(event_record)
             if not is_valid:
                 raise ValueError(f"Schema validation failed: {error_msg}")
+
+            standardized_output = {
+                "event_id": event_record["event_id"],
+                "source_hash": event_record["source_hash"],
+                "truth_level": event_record["truth_level"],
+                "conflict_flag": event_record["conflict_flag"],
+                "geo_normalized": event_record["geo_normalized"],
+                "registry_reference_id": event_record["registry_reference_id"]
+            }
             
             # Event successfully ingested
             self.processed_events.append(event_record)
@@ -164,10 +187,11 @@ class IngestionPipeline:
                 event_id=event_id,
                 truth_level=truth_level,
                 conflict=conflict_flag,
-                geo_resolved=geo_resolved
+                geo_resolved=geo_resolved,
+                schema_validated=True
             )
             
-            return True, event_record, None
+            return True, standardized_output, None
             
         except Exception as e:
             self.ingestion_stats["failed"] += 1
@@ -179,13 +203,21 @@ class IngestionPipeline:
             })
             
             # Record failure
+            failure_type = {
+                "schema_validation": "schema_validation",
+                "truth_classification": "classification",
+                "conflict_detection": "conflict_detection"
+            }.get(stage, "ingestion")
+
             record_ingestion(
                 success=False,
                 event_id=event_id or "",
                 error=error_msg,
                 truth_level=truth_level,
                 conflict=conflict_flag,
-                geo_resolved=geo_resolved
+                geo_resolved=geo_resolved,
+                failure_type=failure_type,
+                schema_validated=(stage == "schema_validation")
             )
             
             return False, None, error_msg

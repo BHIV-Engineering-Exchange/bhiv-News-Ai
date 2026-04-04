@@ -76,7 +76,9 @@ class IngestionMonitor:
         error: str = "",
         truth_level: int = None,
         conflict: bool = False,
-        geo_resolved: bool = False
+        geo_resolved: bool = False,
+        failure_type: str = "",
+        schema_validated: bool = False
     ) -> None:
         """
         Record an ingestion event.
@@ -88,6 +90,8 @@ class IngestionMonitor:
             truth_level: Truth classification level
             conflict: Conflict detected
             geo_resolved: Geo normalization resolved
+            failure_type: Failure category (schema_validation, classification, etc.)
+            schema_validated: Whether schema validation was attempted
         """
         self.metrics["ingestion_health"]["total_ingested"] += 1
         
@@ -95,15 +99,24 @@ class IngestionMonitor:
             self.metrics["ingestion_health"]["successful"] += 1
         else:
             self.metrics["ingestion_health"]["failed"] += 1
-            if error:
+            if failure_type == "schema_validation" and error:
                 self.metrics["schema_validation"]["failure_reasons"][error] = \
                     self.metrics["schema_validation"]["failure_reasons"].get(error, 0) + 1
+
+        if schema_validated or failure_type == "schema_validation":
+            self.metrics["schema_validation"]["total_validated"] += 1
+            if success:
+                self.metrics["schema_validation"]["passed"] += 1
+            elif failure_type == "schema_validation":
+                self.metrics["schema_validation"]["failed"] += 1
         
         # Track truth classification
         if truth_level is not None:
             self.metrics["truth_classification"]["total_classified"] += 1
             if truth_level in self.metrics["truth_classification"]["level_distribution"]:
                 self.metrics["truth_classification"]["level_distribution"][truth_level] += 1
+        elif failure_type == "classification":
+            self.metrics["truth_classification"]["failures"] += 1
         
         # Track conflict detection
         self.metrics["conflict_detection"]["total_checked"] += 1
@@ -128,7 +141,9 @@ class IngestionMonitor:
             "truth_level": truth_level,
             "conflict": conflict,
             "geo_resolved": geo_resolved,
-            "error": error
+            "error": error,
+            "failure_type": failure_type,
+            "schema_validated": schema_validated
         })
         
         # Update first/last event time
@@ -237,14 +252,25 @@ def record_ingestion(
     error: str = "",
     truth_level: int = None,
     conflict: bool = False,
-    geo_resolved: bool = False
+    geo_resolved: bool = False,
+    failure_type: str = "",
+    schema_validated: bool = False
 ) -> None:
     """
     Record ingestion event.
     Convenience function.
     """
     monitor = get_monitor()
-    monitor.record_ingestion(success, event_id, error, truth_level, conflict, geo_resolved)
+    monitor.record_ingestion(
+        success,
+        event_id,
+        error,
+        truth_level,
+        conflict,
+        geo_resolved,
+        failure_type,
+        schema_validated
+    )
 
 
 def get_health_status() -> str:

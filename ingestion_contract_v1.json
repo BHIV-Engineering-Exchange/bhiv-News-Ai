@@ -70,6 +70,13 @@
       "type": ["object", "null"],
       "description": "Standardized geographic data or null if unresolvable",
       "additionalProperties": false,
+      "required": [
+        "country_code",
+        "region",
+        "lat",
+        "lon",
+        "confidence"
+      ],
       "properties": {
         "country_code": {
           "type": "string",
@@ -82,13 +89,13 @@
           "description": "State/province/region name",
           "maxLength": 100
         },
-        "latitude": {
+        "lat": {
           "type": ["number", "null"],
           "description": "Latitude coordinate",
           "minimum": -90,
           "maximum": 90
         },
-        "longitude": {
+        "lon": {
           "type": ["number", "null"],
           "description": "Longitude coordinate",
           "minimum": -180,

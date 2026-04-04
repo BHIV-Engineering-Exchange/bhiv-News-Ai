@@ -84,8 +84,8 @@ class GeoNormalized:
     """Normalized geographic data."""
     country_code: Optional[str] = None
     region: Optional[str] = None
-    latitude: Optional[float] = None
-    longitude: Optional[float] = None
+    lat: Optional[float] = None
+    lon: Optional[float] = None
     confidence: Optional[float] = None
 
 
@@ -149,8 +149,8 @@ class GeoNormalizer:
         geo_data = {
             "country_code": country_code,
             "region": region,
-            "latitude": coords.get("lat"),
-            "longitude": coords.get("lon"),
+            "lat": coords.get("lat"),
+            "lon": coords.get("lon"),
             "confidence": confidence
         }
         
@@ -179,16 +179,16 @@ class GeoNormalizer:
                 return False
         
         # Check optional fields if present
-        if geo_obj.get("latitude") is not None:
-            if not isinstance(geo_obj["latitude"], (int, float)):
+        if geo_obj.get("lat") is not None:
+            if not isinstance(geo_obj["lat"], (int, float)):
                 return False
-            if not (-90 <= geo_obj["latitude"] <= 90):
+            if not (-90 <= geo_obj["lat"] <= 90):
                 return False
         
-        if geo_obj.get("longitude") is not None:
-            if not isinstance(geo_obj["longitude"], (int, float)):
+        if geo_obj.get("lon") is not None:
+            if not isinstance(geo_obj["lon"], (int, float)):
                 return False
-            if not (-180 <= geo_obj["longitude"] <= 180):
+            if not (-180 <= geo_obj["lon"] <= 180):
                 return False
         
         if geo_obj.get("confidence") is not None:
@@ -258,7 +258,7 @@ def test_geo_normalization():
     
     # Test validation
     print("\nValidation tests:")
-    valid_geo = {"country_code": "IN", "region": "MH", "latitude": 19.7515, "longitude": 75.7139, "confidence": 0.9}
+    valid_geo = {"country_code": "IN", "region": "MH", "lat": 19.7515, "lon": 75.7139, "confidence": 0.9}
     is_valid = validate_geo_normalized(valid_geo)
     print(f"Valid geo object: {'✓ PASS' if is_valid else '✗ FAIL'}")
     

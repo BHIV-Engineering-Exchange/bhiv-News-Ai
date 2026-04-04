@@ -1,0 +1,32 @@
+{
+  "signals": [
+    {
+      "event_id": "evt_demo_001",
+      "truth_level": 4,
+      "conflict_flag": false,
+      "signal_type": "high",
+      "is_sensitive": false
+    },
+    {
+      "event_id": "evt_demo_002",
+      "truth_level": 3,
+      "conflict_flag": true,
+      "signal_type": "critical",
+      "is_sensitive": false
+    },
+    {
+      "event_id": "evt_demo_003",
+      "truth_level": 1,
+      "conflict_flag": false,
+      "signal_type": "low",
+      "is_sensitive": false
+    },
+    {
+      "event_id": "evt_demo_004",
+      "truth_level": 3,
+      "conflict_flag": false,
+      "signal_type": "medium",
+      "is_sensitive": true
+    }
+  ]
+}

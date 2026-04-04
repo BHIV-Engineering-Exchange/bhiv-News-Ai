@@ -1,0 +1,32 @@
+{
+  "registry": "demo",
+  "queries": [
+    {
+      "query_name": "high_truth_case",
+      "geo": "Punjab",
+      "start_time": "2026-03-29T00:00:00Z",
+      "end_time": "2026-03-29T09:00:00Z",
+      "min_truth_level": 3,
+      "signal_type": "high",
+      "conflict_flag": false
+    },
+    {
+      "query_name": "conflict_case",
+      "geo": "Punjab",
+      "start_time": "2026-03-29T00:00:00Z",
+      "end_time": "2026-03-29T23:59:59Z",
+      "min_truth_level": 2,
+      "signal_type": "critical",
+      "conflict_flag": true
+    },
+    {
+      "query_name": "low_truth_case",
+      "geo": "Delhi",
+      "start_time": "2026-03-29T00:00:00Z",
+      "end_time": "2026-03-29T23:59:59Z",
+      "min_truth_level": 0,
+      "signal_type": "low",
+      "conflict_flag": false
+    }
+  ]
+}

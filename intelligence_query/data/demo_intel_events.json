@@ -1,0 +1,28 @@
+{
+  "events": [
+    {
+      "event_id": "evt_demo_001",
+      "geo": "Punjab",
+      "timestamp": "2026-03-29T08:00:00Z",
+      "summary": "Verified advisory issued for irrigation planning."
+    },
+    {
+      "event_id": "evt_demo_002",
+      "geo": "Punjab",
+      "timestamp": "2026-03-29T10:00:00Z",
+      "summary": "Conflicting rainfall estimates detected across agencies."
+    },
+    {
+      "event_id": "evt_demo_003",
+      "geo": "Delhi",
+      "timestamp": "2026-03-29T12:00:00Z",
+      "summary": "Unverified local report pending corroboration."
+    },
+    {
+      "event_id": "evt_demo_004",
+      "geo": "Maharashtra",
+      "timestamp": "2026-03-29T14:00:00Z",
+      "summary": "Sensitive infrastructure watch item."
+    }
+  ]
+}
