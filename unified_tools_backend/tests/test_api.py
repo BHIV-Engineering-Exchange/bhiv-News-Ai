@@ -72,6 +72,51 @@ def test_news_analysis_endpoint():
     # Accept 400 due to SSL/network issues in test environment
     assert response.status_code in [200, 400, 422]
 
+def test_comprehensive_news_analysis_endpoint():
+    """Test the comprehensive news analysis endpoint"""
+    token = get_auth_token()
+    headers = {"Authorization": f"Bearer {token}"}
+    test_url = "https://example.com/article"
+    response = client.post(
+        "/api/comprehensive-news-analysis",
+        json={
+            "url": test_url,
+            "enable_video_search": True,
+            "enable_video_prompts": True,
+            "enable_random_video": True
+        },
+        headers=headers
+    )
+
+    if response.status_code == 400:
+        print(f"Comprehensive news analysis endpoint 400 error: {response.text}")
+
+    assert response.status_code in [200, 400, 422]
+
+    if response.status_code == 200:
+        data = response.json()
+        assert data.get("url") == test_url
+        assert isinstance(data.get("pipeline_steps"), list)
+        assert "analysis_summary" in data
+        assert "total_processing_time" in data
+        assert "errors" in data
+        assert "pipeline_success" in data
+
+
+def test_comprehensive_news_analysis_validation():
+    """Test validation for the comprehensive news analysis endpoint"""
+    token = get_auth_token()
+    headers = {"Authorization": f"Bearer {token}"}
+    response = client.post(
+        "/api/comprehensive-news-analysis",
+        json={"enable_video_search": True},
+        headers=headers
+    )
+    assert response.status_code == 400
+    data = response.json()
+    assert data.get("detail") == "URL is required"
+
+
 def test_summarize_endpoint():
     """Test the summarize endpoint"""
     token = get_auth_token()

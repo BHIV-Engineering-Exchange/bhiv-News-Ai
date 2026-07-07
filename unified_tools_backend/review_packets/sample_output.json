@@ -1,0 +1,57 @@
+{
+  "pipeline_success": true,
+  "intelligence": {
+    "validated_entities": {
+      "names": [
+        "Revanth Reddy"
+      ],
+      "organizations": [
+        "Congress"
+      ],
+      "locations": [
+        "Hyderabad"
+      ],
+      "dates": [
+        "Jul 5, 2026"
+      ]
+    },
+    "classification": {
+      "primary_category": "Politics",
+      "secondary_category": "World",
+      "confidence_score": 0.7
+    },
+    "evidence": {
+      "Congress": [
+        {
+          "sentence": "Congress leaders addressed the Assembly...",
+          "confidence": 1.0
+        }
+      ]
+    },
+    "confidence": {
+      "score": 63,
+      "level": "Medium",
+      "summary": "3 entities, 4 evidence matches, classification confidence 0.70"
+    },
+    "processing_trace": {
+      "status": "SUCCESS",
+      "steps": [
+        "Scraping",
+        "Entity Extraction",
+        "Validation",
+        "Classification",
+        "Evidence",
+        "Confidence"
+      ],
+       "processing_time": {
+          "entity_extraction": 0.8,
+          "validation": 0,
+          "classification": 0,
+          "evidence": 0.03,
+          "confidence": 0,
+          "scraping": 1.07,
+          "total": 1.9
+        }
+    }
+  }
+}
