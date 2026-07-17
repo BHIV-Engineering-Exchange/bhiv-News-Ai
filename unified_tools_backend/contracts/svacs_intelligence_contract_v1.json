@@ -1,0 +1,135 @@
+{
+  "contract_name": "Samachar SVACS Intelligence Contract",
+  "schema_version": "1.0.0",
+  "status": "FROZEN",
+  "producer": "samachar",
+  "consumer": "svacs",
+  "description": "Versioned structured intelligence contract published by Samachar for downstream SVACS processing.",
+  "fields": {
+    "trace_id": {
+      "type": "string",
+      "required": true,
+      "description": "Samachar-generated trace identifier. Must be preserved unchanged by downstream consumers."
+    },
+    "source_type": {
+      "type": "string",
+      "required": true,
+      "allowed_values": [
+        "image",
+        "manual",
+        "satellite_feed"
+      ],
+      "description": "Original Samachar intelligence ingestion source."
+    },
+    "vessel_class": {
+      "type": "string",
+      "required": true,
+      "allowed_values": [
+        "cargo",
+        "tanker",
+        "patrol",
+        "fishing",
+        "submarine",
+        "unknown"
+      ],
+      "description": "Normalized vessel taxonomy value. Unknown is used when upstream evidence does not support a specific vessel class."
+    },
+    "confidence_score": {
+      "type": "number",
+      "required": true,
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "description": "Canonical intelligence confidence score normalized to the range 0.0 to 1.0."
+    },
+    "vision_confidence": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "required": true,
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "description": "Confidence reported by the upstream Vision Runtime. Null when Vision Runtime was not invoked."
+    },
+    "ocr_results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "text",
+          "confidence"
+        ],
+        "properties": {
+          "text": {
+            "type": "string"
+          },
+          "confidence": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "visual_features": {
+      "type": "array",
+      "required": true,
+      "items": {
+        "type": "string"
+      },
+      "description": "Visual features supplied by an upstream vision capability. Samachar does not infer unsupported visual features."
+    },
+    "dimensions_estimate": {
+      "type": "object",
+      "required": true,
+      "fields": {
+        "length_m": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "beam_m": {
+          "type": [
+            "number",
+            "null"
+          ]
+        }
+      },
+      "description": "Estimated vessel dimensions when supplied by an upstream capability."
+    },
+    "ais_data": {
+      "type": "object",
+      "required": true,
+      "fields": {
+        "mmsi": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "speed_knots": {
+          "type": [
+            "number",
+            "null"
+          ]
+        }
+      },
+      "description": "Available AIS-compatible identifiers and movement metadata."
+    },
+    "timestamp_utc": {
+      "type": "string",
+      "required": true,
+      "format": "ISO-8601",
+      "description": "UTC timestamp associated with the canonical intelligence output."
+    }
+  },
+  "compatibility_guarantees": {
+    "trace_id_preservation": true,
+    "schema_version": "1.0.0",
+    "breaking_changes_require_new_major_version": true,
+    "unsupported_values_use_null_or_unknown": true,
+    "hidden_transformations_allowed": false
+  }
+}

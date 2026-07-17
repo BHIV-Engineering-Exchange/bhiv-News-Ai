@@ -1,3 +1,4 @@
+import re
 class ClassificationEngine:
 
     DOMAIN_RULES = {
@@ -101,14 +102,23 @@ class ClassificationEngine:
             score = 0
 
             for keyword in rule["keywords"]:
-                if keyword in normalized_text:
+
+                keyword_pattern = (
+                    r"(?<!\w)"
+                    + re.escape(keyword)
+                    + r"(?!\w)"
+                )
+
+                if re.search(keyword_pattern,normalized_text):
                     # Give higher weight to multi-word phrases
                     if len(keyword.split()) > 1:
                         score += 3
                     else:
                         score += 1
 
-                    matched_keywords.append(keyword)
+                    matched_keywords.append(
+                        keyword
+                    )
 
             scores[category] = score
 
@@ -116,15 +126,35 @@ class ClassificationEngine:
 
         sorted_categories = sorted(
             scores.items(),
-            key = lambda item: item[1],
+            key=lambda item: item[1],
             reverse=True
         )
 
-        primary_category = (sorted_categories[0][0])
+        top_score = sorted_categories[0][1]
 
-        secondary_category = (sorted_categories[1][0])
+        # No category has supporting evidence
+        if top_score == 0:
+            rejected_categories = {
+                category: "No supporting keywords found"
+                for category, _ in sorted_categories
+            }
 
-        top_score = (sorted_categories[0][1])
+            return {
+                "primary_category": "Unclassified",
+                "secondary_category": None,
+                "confidence_score": 0.0,
+                "matched_keywords": [],
+                "evidence_used": [],
+                "rejected_categories": rejected_categories,
+                "classification_explanation": (
+                    "No supported classification keywords were found "
+                    "in the input."
+                )
+            }
+
+        primary_category = sorted_categories[0][0]
+
+        secondary_category = sorted_categories[1][0]
 
         if top_score >= 5:
             confidence_score = 0.95

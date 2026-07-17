@@ -1,7 +1,10 @@
+import traceback
+
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Depends, Security
 from fastapi.staticfiles import StaticFiles
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.responses import JSONResponse
+
 import httpx
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -28,7 +31,16 @@ from urllib.parse import urlparse, parse_qs
 import sys
 import hashlib
 
+
 from analysis.news_intelligence_service import NewsIntelligenceService
+from analysis.vision_intelligence_service import (VisionIntelligenceService)
+
+from analysis.svacs_intelligence_mapper import (SVACSIntelligenceMapper)
+from analysis.manual_intelligence_service import (ManualIntelligenceService)
+from analysis.satellite_intelligence_service import (SatelliteIntelligenceService)
+import uuid
+from runtime.error_response import (RuntimeErrorResponse)
+from runtime.svacs_contract_validator import (SVACSContractValidator)
 
 load_dotenv()
 
@@ -6864,6 +6876,418 @@ async def delete_scraped_news(id: str, db: DatabaseManager = Depends(get_db)):
             "success": False,
             "error": str(e)
         }
+
+class ManualIntelligenceRequest(BaseModel):
+    content: str
+    source: str = "operator"
+
+class SatelliteIntelligenceRequest(BaseModel):
+    feed_id: str
+    timestamp_utc: str
+    image_reference: Optional[str] = None
+    metadata: Optional[Dict[str, Any]] = None
+
+# ==========================================================
+# Samachar -> SVACS Vision Intelligence Endpoint
+# ==========================================================
+
+@app.post("/api/v1/intelligence/image")
+async def ingest_image_intelligence(
+    image: UploadFile = File(...)
+):
+    """
+    Samachar image intelligence ingestion endpoint.
+
+    Flow:
+    Image
+        -> Samachar
+        -> Vision Runtime
+        -> Canonical Intelligence
+        -> SVACS Contract Mapping
+    """
+    request_trace_id = (f"SAM-{uuid.uuid4()}")
+
+    allowed_content_types = {
+        "image/jpeg",
+        "image/png",
+        "image/webp",
+    }
+
+    if image.content_type not in allowed_content_types:
+        raise HTTPException(
+            status_code=415,
+            detail=(
+                "Unsupported image type. "
+                "Allowed types: JPEG, PNG, WEBP."
+            ),
+        )
+
+    try:
+        image_bytes = await image.read()
+
+        if not image_bytes:
+            raise HTTPException(
+                status_code=400,
+                detail="Uploaded image is empty",
+            )
+
+        vision_service = VisionIntelligenceService()
+
+        canonical_intelligence = vision_service.process(
+            image_bytes=image_bytes,
+            filename=image.filename or "uploaded_image",
+            content_type=image.content_type or "image/jpeg",
+            return_explainable_image=False,
+        )
+
+        svacs_mapper = SVACSIntelligenceMapper()
+
+        svacs_payload = svacs_mapper.map(
+            canonical_intelligence
+        )
+
+        # ==========================================
+        # SVACS V1 CONTRACT VALIDATION GATE
+        # ==========================================
+
+        contract_validation = (
+            SVACSContractValidator.validate(
+                svacs_payload
+            )
+        )
+
+        if not contract_validation["valid"]:
+
+            print(
+                "\n[SVACS IMAGE ENDPOINT] "
+                "Contract Validation Failed"
+            )
+
+            print(
+                f"Trace ID: "
+                f"{svacs_payload.get('trace_id')}"
+            )
+
+            print(
+                "Contract Errors: "
+                f"{contract_validation['errors']}"
+            )
+
+            error_response = (
+                RuntimeErrorResponse.build(
+                    trace_id=(
+                        svacs_payload.get(
+                            "trace_id"
+                        )
+                        or request_trace_id
+                    ),
+                    error_code=(
+                        "SVACS_CONTRACT_VALIDATION_FAILED"
+                    ),
+                    message=(
+                        "; ".join(
+                            contract_validation[
+                                "errors"
+                            ]
+                        )
+                    ),
+                    stage="svacs_contract_validation",
+                    failed_step=(
+                        "SVACS Contract Validation"
+                    ),
+                    source_type="image",
+                )
+            )
+
+            return JSONResponse(
+                status_code=500,
+                content=error_response,
+            )
+
+        print(
+            "\n[SVACS IMAGE ENDPOINT] "
+            "Contract Validation Passed"
+        )
+
+        print(
+            f"Trace ID: "
+            f"{svacs_payload.get('trace_id')}"
+        )
+
+        print(
+            "Contract Version: "
+            f"{contract_validation['contract_version']}"
+        )
+
+        return svacs_payload
+
+    except HTTPException:
+        raise
+
+    except RuntimeError as exc:
+        print(
+            "\n[SVACS IMAGE ENDPOINT] "
+            "Runtime Error"
+        )
+
+        print(
+            f"Trace ID: {request_trace_id}"
+        )
+
+        print(f"Error: {exc}")
+
+        traceback.print_exc()
+
+        error_message = str(exc)
+
+        if (
+            "Unable to connect to Vision Runtime"
+            in error_message
+        ):
+            error_code = ("VISION_RUNTIME_UNAVAILABLE")
+
+            status_code = 502
+
+        elif (
+            "timed out"
+            in error_message.lower()
+        ):
+            error_code = ("VISION_RUNTIME_TIMEOUT")
+
+            status_code = 504
+
+        elif (
+            "Vision Runtime returned HTTP"
+            in error_message
+        ):
+            error_code = ("VISION_RUNTIME_HTTP_ERROR")
+
+            status_code = 502
+
+        else:
+            error_code = ("VISION_RUNTIME_PROCESSING_FAILED")
+
+            status_code = 502
+
+        error_response = (
+            RuntimeErrorResponse.build(
+                trace_id=request_trace_id,
+                error_code=error_code,
+                message=error_message,
+                stage="vision_runtime",
+                failed_step="Vision Runtime",
+                source_type="image",
+            )
+        )
+
+        return JSONResponse(
+            status_code=status_code,
+            content=error_response,
+        )
+
+    except ValueError as exc:
+        print(
+            "\n[SVACS IMAGE ENDPOINT] "
+            "Validation Error"
+        )
+
+        print(f"Trace ID: {request_trace_id}")
+
+        print(f"Error: {exc}")
+
+        traceback.print_exc()
+
+        error_response = (
+            RuntimeErrorResponse.build(
+                trace_id=request_trace_id,
+                error_code="INVALID_IMAGE_INPUT",
+                message=str(exc),
+                stage="image_ingestion",
+                failed_step="Image Ingestion",
+                source_type="image",
+            )
+        )
+
+        return JSONResponse(
+            status_code=400,
+            content=error_response,
+        )
+
+    except Exception as exc:
+        print("\n[SVACS IMAGE ENDPOINT] Unexpected Error")
+        print(f"Trace ID: {request_trace_id}")
+        print(f"Error Type: {type(exc).__name__}")
+        print(f"Error: {exc}")
+        traceback.print_exc()
+
+        error_response = (
+            RuntimeErrorResponse.build(
+                trace_id=request_trace_id,
+                error_code=(
+                    "IMAGE_INTELLIGENCE_FAILED"
+                ),
+                message=(
+                    f"{type(exc).__name__}: "
+                    f"{str(exc)}"
+                ),
+                stage="image_intelligence",
+                failed_step=(
+                    "Image Intelligence"
+                ),
+                source_type="image",
+            )
+        )
+
+        return JSONResponse(
+            status_code=500,
+            content=error_response,
+        )
+
+# ==========================================================
+# Samachar Manual Intelligence Ingestion Endpoint
+# ==========================================================
+
+@app.post("/api/v1/intelligence/manual")
+async def ingest_manual_intelligence(
+    request: ManualIntelligenceRequest
+):
+    """
+    Samachar manual intelligence ingestion endpoint.
+
+    Flow:
+    Manual Operator Input
+        -> Samachar Intelligence
+        -> Canonical Structured Intelligence
+
+    Vision Runtime is not invoked.
+    """
+
+    try:
+        manual_service = (
+            ManualIntelligenceService()
+        )
+
+        canonical_intelligence = (
+            manual_service.process(
+                content=request.content,
+                source=request.source,
+            )
+        )
+
+        return canonical_intelligence
+
+    except ValueError as exc:
+        print(
+            "\n[MANUAL INTELLIGENCE ENDPOINT] "
+            "Validation Error"
+        )
+        print(f"Error: {exc}")
+
+        raise HTTPException(
+            status_code=400,
+            detail=str(exc),
+        ) from exc
+
+    except Exception as exc:
+        print(
+            "\n[MANUAL INTELLIGENCE ENDPOINT] "
+            "Unexpected Error"
+        )
+        print(
+            f"Error Type: "
+            f"{type(exc).__name__}"
+        )
+        print(f"Error: {exc}")
+
+        traceback.print_exc()
+
+        raise HTTPException(
+            status_code=500,
+            detail=(
+                "Manual intelligence processing "
+                f"failed: {type(exc).__name__}: "
+                f"{str(exc)}"
+            ),
+        ) from exc
+    
+# ==========================================================
+# Samachar Satellite Feed Ingestion Endpoint
+# ==========================================================
+
+@app.post("/api/v1/intelligence/satellite")
+async def ingest_satellite_intelligence(
+    request: SatelliteIntelligenceRequest
+):
+    """
+    Samachar future satellite feed ingestion interface.
+
+    Current scope:
+    Satellite Feed Metadata
+        -> Validation
+        -> Provenance Capture
+        -> Canonical Ingestion Envelope
+
+    No satellite image processing is performed here.
+    """
+
+    try:
+        satellite_service = (
+            SatelliteIntelligenceService()
+        )
+
+        canonical_intelligence = (
+            satellite_service.process(
+                feed_id=request.feed_id,
+                timestamp_utc=(
+                    request.timestamp_utc
+                ),
+                image_reference=(
+                    request.image_reference
+                ),
+                metadata=request.metadata,
+            )
+        )
+
+        return canonical_intelligence
+
+    except ValueError as exc:
+        print(
+            "\n[SATELLITE INTELLIGENCE ENDPOINT] "
+            "Validation Error"
+        )
+        print(f"Error: {exc}")
+
+        raise HTTPException(
+            status_code=400,
+            detail=str(exc),
+        ) from exc
+
+    except Exception as exc:
+        print(
+            "\n[SATELLITE INTELLIGENCE ENDPOINT] "
+            "Unexpected Error"
+        )
+        print(
+            f"Error Type: "
+            f"{type(exc).__name__}"
+        )
+        print(f"Error: {exc}")
+
+        traceback.print_exc()
+
+        raise HTTPException(
+            status_code=500,
+            detail=(
+                "Satellite intelligence processing "
+                f"failed: {type(exc).__name__}: "
+                f"{str(exc)}"
+            ),
+        ) from exc
+
+# Health check
+class LoginRequest(BaseModel):
+    username: str
+    password: str
 
 # Health check
 class LoginRequest(BaseModel):
