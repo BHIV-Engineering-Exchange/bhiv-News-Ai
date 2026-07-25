@@ -113,6 +113,10 @@ class ManualIntelligenceService:
                 "input_fingerprint": (
                     input_fingerprint
                 ),
+                "normalization": {
+                    "content_trimmed": content != clean_content,
+                    "source_normalized": source != clean_source,
+                },
             },
             "intelligence": intelligence_result,
             "processing_trace": {

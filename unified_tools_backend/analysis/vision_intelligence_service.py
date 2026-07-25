@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+import hashlib
 import re
 import time
 import uuid
@@ -9,6 +10,7 @@ from analysis.news_intelligence_service import NewsIntelligenceService
 from analysis.svacs_intelligence_mapper import (
     SVACSIntelligenceMapper
 )
+from runtime.replay_store import ReplayStore
 
 class VisionIntelligenceService:
     """
@@ -41,6 +43,27 @@ class VisionIntelligenceService:
     ) -> dict:
 
         total_start = time.perf_counter()
+
+        if not isinstance(image_bytes, bytes) or not image_bytes:
+            raise ValueError("Image bytes are required")
+
+        input_fingerprint = (
+            "sha256:"
+            + hashlib.sha256(
+                content_type.encode("utf-8") + b":" + image_bytes
+            ).hexdigest()
+        )
+
+        replay_record = ReplayStore.get(input_fingerprint)
+
+        if replay_record is not None:
+            replay_result = replay_record["result"]
+            replay_result["replay"] = {
+                "status": "HIT",
+                "input_fingerprint": input_fingerprint,
+                "original_trace_id": replay_record["trace_id"],
+            }
+            return replay_result
 
         trace_id = f"SAM-{uuid.uuid4()}"
 
@@ -161,7 +184,12 @@ class VisionIntelligenceService:
                     vision_result.get(
                         "replay_id"
                     )
-                )
+                ),
+                "input_fingerprint": input_fingerprint,
+                "normalization": {
+                    "ocr_results_received": len(raw_ocr_results),
+                    "ocr_results_normalized": len(normalized_ocr_results),
+                },
             },
 
             "vision_intelligence": {
@@ -210,6 +238,12 @@ class VisionIntelligenceService:
                 "ready_for_processing": True
             },
 
+            "replay": {
+                "status": "MISS",
+                "input_fingerprint": input_fingerprint,
+                "original_trace_id": trace_id,
+            },
+
             "errors": []
         }
 
@@ -221,6 +255,14 @@ class VisionIntelligenceService:
         processing_times["total"] = round(
             time.perf_counter() - total_start,
             3
+        )
+
+        ReplayStore.save(
+            input_fingerprint=input_fingerprint,
+            trace_id=trace_id,
+            input_type="image",
+            schema_version=self.SCHEMA_VERSION,
+            result=canonical_response,
         )
 
         return canonical_response

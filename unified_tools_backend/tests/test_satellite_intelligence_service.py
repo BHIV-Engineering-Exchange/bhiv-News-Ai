@@ -97,3 +97,18 @@ def test_satellite_intelligence_replay():
     )
 
     assert ReplayStore.count() == 1
+
+
+def test_satellite_intelligence_rejects_non_object_metadata():
+    service = SatelliteIntelligenceService()
+
+    try:
+        service.process(
+            feed_id="SAT-TEST-INVALID",
+            timestamp_utc="2026-07-14T15:00:00Z",
+            metadata=["invalid"],
+        )
+    except ValueError as exc:
+        assert str(exc) == "Satellite metadata must be an object"
+    else:
+        raise AssertionError("Satellite metadata validation must reject arrays")

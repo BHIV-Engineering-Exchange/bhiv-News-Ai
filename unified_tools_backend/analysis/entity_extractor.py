@@ -35,7 +35,16 @@ class EntityExtractor:
 
     def __init__(self):
         #3
-        self.nlp = spacy.load("en_core_web_lg")
+        self.nlp = self._load_nlp_model()
+
+    @staticmethod
+    def _load_nlp_model():
+        for model in ("en_core_web_lg", "en_core_web_sm"):
+            try:
+                return spacy.load(model)
+            except OSError:
+                continue
+        return spacy.blank("en")
 
     def extract(self, text: str) -> dict:
         if not text:

@@ -71,11 +71,12 @@ class SatelliteIntelligenceService:
             else None
         )
 
-        clean_metadata = (
-            metadata
-            if isinstance(metadata, dict)
-            else {}
-        )
+        if metadata is not None and not isinstance(metadata, dict):
+            raise ValueError(
+                "Satellite metadata must be an object"
+            )
+
+        clean_metadata = metadata or {}
 
         fingerprint_payload = {
             "feed_id": clean_feed_id,
@@ -140,6 +141,13 @@ class SatelliteIntelligenceService:
                 "input_fingerprint": (
                     input_fingerprint
                 ),
+                "normalization": {
+                    "feed_id_trimmed": feed_id != clean_feed_id,
+                    "timestamp_trimmed": timestamp_utc != clean_timestamp,
+                    "image_reference_normalized": (
+                        image_reference != clean_image_reference
+                    ),
+                },
             },
             "satellite_feed": {
                 "feed_id": clean_feed_id,
@@ -173,6 +181,7 @@ class SatelliteIntelligenceService:
                 "feed_interface": "AVAILABLE",
                 "vision_processing": "NOT_INVOKED",
                 "production_feed_adapter": "PENDING_CONTRACT",
+                "classification": "NOT_APPLICABLE",
             },
             "errors": [],
         }

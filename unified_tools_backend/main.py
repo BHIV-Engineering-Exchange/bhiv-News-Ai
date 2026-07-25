@@ -1,6 +1,7 @@
 import traceback
+import logging
 
-from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Depends, Security
+from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Depends, Security, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.responses import JSONResponse
@@ -57,10 +58,30 @@ if hasattr(sys.stderr, "reconfigure"):
         pass
 
 app = FastAPI(title="Unified Tools API", version="2.0.0")
+# Uvicorn owns the process handlers; this child logger writes to the same
+# backend terminal without installing a second logging configuration.
+logger = logging.getLogger("uvicorn.error.samachar.ingestion")
+
+INGESTION_LOG_PATHS = {
+    "/api/validate-url",
+    "/api/scrape",
+    "/api/pipeline",
+    "/api/news-analysis",
+    "/api/comprehensive-news-analysis",
+    "/api/unified",
+    "/api/fast-news-workflow",
+    "/api/unified-news-workflow",
+    "/api/v1/intelligence/image",
+    "/api/v1/intelligence/manual",
+    "/api/v1/intelligence/satellite",
+}
 
 # Security Headers Middleware
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
+        request_id = request.headers.get("X-Request-ID") or f"SAM-REQ-{uuid.uuid4()}"
+        request.state.request_id = request_id
+        started_at = time.perf_counter()
         response = await call_next(request)
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"
@@ -80,6 +101,16 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
             )
         else:
             response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https:;"
+        response.headers["X-Request-ID"] = request_id
+
+        if path in INGESTION_LOG_PATHS:
+            logger.info(
+                "Samachar request completed endpoint=%s request_id=%s status=%s processing_time_ms=%d",
+                path,
+                request_id,
+                response.status_code,
+                (time.perf_counter() - started_at) * 1000,
+            )
         return response
 
 # Add security headers middleware
@@ -6887,13 +6918,114 @@ class SatelliteIntelligenceRequest(BaseModel):
     image_reference: Optional[str] = None
     metadata: Optional[Dict[str, Any]] = None
 
+
+MAX_IMAGE_BYTES = 10 * 1024 * 1024
+
+
+def _classification_result(canonical_intelligence: Dict[str, Any]) -> str:
+    intelligence = canonical_intelligence.get("intelligence") or {}
+    classification = intelligence.get("classification") or {}
+    return classification.get("primary_category", "not_applicable")
+
+
+def _log_ingestion_evidence(
+    *,
+    endpoint: str,
+    request_id: str,
+    canonical_intelligence: Dict[str, Any],
+    validation_result: str,
+    processing_time_ms: int,
+) -> None:
+    provenance = canonical_intelligence.get("provenance") or {}
+    replay = canonical_intelligence.get("replay") or {}
+    logger.info(
+        "\n========== SAMACHAR REQUEST ==========\n"
+        "Endpoint: %s\n"
+        "Request ID: %s\n"
+        "Input Type: %s\n"
+        "Validation Passed: %s\n"
+        "Classification: %s\n"
+        "Replay ID: %s\n"
+        "Trace ID: %s\n"
+        "Provenance Generated: %s\n"
+        "Processing Time: %d ms\n"
+        "=====================================",
+        endpoint,
+        request_id,
+        (canonical_intelligence.get("source") or {}).get("input_type", "unknown"),
+        validation_result,
+        _classification_result(canonical_intelligence),
+        replay.get("status") or provenance.get("vision_replay_id") or "not_applicable",
+        canonical_intelligence.get("trace_id", "not_available"),
+        bool(provenance),
+        processing_time_ms,
+    )
+
+
+def _governed_error_response(
+    *,
+    trace_id: str,
+    status_code: int,
+    error_code: str,
+    message: str,
+    stage: str,
+    failed_step: str,
+    source_type: str,
+) -> JSONResponse:
+    error_payload = RuntimeErrorResponse.build(
+        trace_id=trace_id,
+        error_code=error_code,
+        message=message,
+        stage=stage,
+        failed_step=failed_step,
+        source_type=source_type,
+    )
+    # Preserve FastAPI's historical error field for existing callers while
+    # exposing the governed Samachar error contract.
+    error_payload["detail"] = message
+    return JSONResponse(
+        status_code=status_code,
+        content=error_payload,
+    )
+
+
+def _log_ingestion_failure(
+    *,
+    endpoint: str,
+    request_id: str,
+    input_type: str,
+    trace_id: str,
+    validation_result: str,
+    processing_time_ms: int,
+) -> None:
+    logger.info(
+        "\n========== SAMACHAR REQUEST ==========\n"
+        "Endpoint: %s\n"
+        "Request ID: %s\n"
+        "Input Type: %s\n"
+        "Validation Passed: %s\n"
+        "Classification: not_applicable\n"
+        "Replay ID: not_applicable\n"
+        "Trace ID: %s\n"
+        "Provenance Generated: False\n"
+        "Processing Time: %d ms\n"
+        "=====================================",
+        endpoint,
+        request_id,
+        input_type,
+        validation_result,
+        trace_id,
+        processing_time_ms,
+    )
+
 # ==========================================================
 # Samachar -> SVACS Vision Intelligence Endpoint
 # ==========================================================
 
 @app.post("/api/v1/intelligence/image")
 async def ingest_image_intelligence(
-    image: UploadFile = File(...)
+    request: Request,
+    image: UploadFile = File(...),
 ):
     """
     Samachar image intelligence ingestion endpoint.
@@ -6906,6 +7038,8 @@ async def ingest_image_intelligence(
         -> SVACS Contract Mapping
     """
     request_trace_id = (f"SAM-{uuid.uuid4()}")
+    started_at = time.perf_counter()
+    request_id = request.state.request_id
 
     allowed_content_types = {
         "image/jpeg",
@@ -6914,21 +7048,63 @@ async def ingest_image_intelligence(
     }
 
     if image.content_type not in allowed_content_types:
-        raise HTTPException(
+        _log_ingestion_failure(
+            endpoint="/api/v1/intelligence/image",
+            request_id=request_id,
+            input_type="image",
+            trace_id=request_trace_id,
+            validation_result="failed",
+            processing_time_ms=int((time.perf_counter() - started_at) * 1000),
+        )
+        return _governed_error_response(
+            trace_id=request_trace_id,
             status_code=415,
-            detail=(
-                "Unsupported image type. "
-                "Allowed types: JPEG, PNG, WEBP."
-            ),
+            error_code="UNSUPPORTED_IMAGE_TYPE",
+            message="Unsupported image type. Allowed types: JPEG, PNG, WEBP.",
+            stage="image_ingestion",
+            failed_step="Input Validation",
+            source_type="image",
         )
 
     try:
         image_bytes = await image.read()
 
         if not image_bytes:
-            raise HTTPException(
+            _log_ingestion_failure(
+                endpoint="/api/v1/intelligence/image",
+                request_id=request_id,
+                input_type="image",
+                trace_id=request_trace_id,
+                validation_result="failed",
+                processing_time_ms=int((time.perf_counter() - started_at) * 1000),
+            )
+            return _governed_error_response(
+                trace_id=request_trace_id,
                 status_code=400,
-                detail="Uploaded image is empty",
+                error_code="EMPTY_IMAGE_INPUT",
+                message="Uploaded image is empty",
+                stage="image_ingestion",
+                failed_step="Input Validation",
+                source_type="image",
+            )
+
+        if len(image_bytes) > MAX_IMAGE_BYTES:
+            _log_ingestion_failure(
+                endpoint="/api/v1/intelligence/image",
+                request_id=request_id,
+                input_type="image",
+                trace_id=request_trace_id,
+                validation_result="failed",
+                processing_time_ms=int((time.perf_counter() - started_at) * 1000),
+            )
+            return _governed_error_response(
+                trace_id=request_trace_id,
+                status_code=413,
+                error_code="IMAGE_TOO_LARGE",
+                message=f"Uploaded image exceeds the {MAX_IMAGE_BYTES} byte limit",
+                stage="image_ingestion",
+                failed_step="Input Validation",
+                source_type="image",
             )
 
         vision_service = VisionIntelligenceService()
@@ -6958,65 +7134,36 @@ async def ingest_image_intelligence(
 
         if not contract_validation["valid"]:
 
-            print(
-                "\n[SVACS IMAGE ENDPOINT] "
-                "Contract Validation Failed"
+            logger.warning(
+                "SVACS contract validation failed request_id=%s trace_id=%s error_count=%d",
+                request_id,
+                svacs_payload.get("trace_id") or request_trace_id,
+                len(contract_validation["errors"]),
             )
-
-            print(
-                f"Trace ID: "
-                f"{svacs_payload.get('trace_id')}"
+            _log_ingestion_failure(
+                endpoint="/api/v1/intelligence/image",
+                request_id=request_id,
+                input_type="image",
+                trace_id=svacs_payload.get("trace_id") or request_trace_id,
+                validation_result="failed",
+                processing_time_ms=int((time.perf_counter() - started_at) * 1000),
             )
-
-            print(
-                "Contract Errors: "
-                f"{contract_validation['errors']}"
-            )
-
-            error_response = (
-                RuntimeErrorResponse.build(
-                    trace_id=(
-                        svacs_payload.get(
-                            "trace_id"
-                        )
-                        or request_trace_id
-                    ),
-                    error_code=(
-                        "SVACS_CONTRACT_VALIDATION_FAILED"
-                    ),
-                    message=(
-                        "; ".join(
-                            contract_validation[
-                                "errors"
-                            ]
-                        )
-                    ),
-                    stage="svacs_contract_validation",
-                    failed_step=(
-                        "SVACS Contract Validation"
-                    ),
-                    source_type="image",
-                )
-            )
-
-            return JSONResponse(
+            return _governed_error_response(
+                trace_id=svacs_payload.get("trace_id") or request_trace_id,
                 status_code=500,
-                content=error_response,
+                error_code="SVACS_CONTRACT_VALIDATION_FAILED",
+                message="; ".join(contract_validation["errors"]),
+                stage="svacs_contract_validation",
+                failed_step="SVACS Contract Validation",
+                source_type="image",
             )
 
-        print(
-            "\n[SVACS IMAGE ENDPOINT] "
-            "Contract Validation Passed"
-        )
-
-        print(
-            f"Trace ID: "
-            f"{svacs_payload.get('trace_id')}"
-        )
-
-        print(
-            "Contract Version: "
-            f"{contract_validation['contract_version']}"
+        _log_ingestion_evidence(
+            endpoint="/api/v1/intelligence/image",
+            request_id=request_id,
+            canonical_intelligence=canonical_intelligence,
+            validation_result="passed",
+            processing_time_ms=int((time.perf_counter() - started_at) * 1000),
         )
 
         return svacs_payload
@@ -7025,18 +7172,20 @@ async def ingest_image_intelligence(
         raise
 
     except RuntimeError as exc:
-        print(
-            "\n[SVACS IMAGE ENDPOINT] "
-            "Runtime Error"
+        logger.error(
+            "Image intelligence runtime failure request_id=%s trace_id=%s",
+            request_id,
+            request_trace_id,
+            exc_info=True,
         )
-
-        print(
-            f"Trace ID: {request_trace_id}"
+        _log_ingestion_failure(
+            endpoint="/api/v1/intelligence/image",
+            request_id=request_id,
+            input_type="image",
+            trace_id=request_trace_id,
+            validation_result="passed",
+            processing_time_ms=int((time.perf_counter() - started_at) * 1000),
         )
-
-        print(f"Error: {exc}")
-
-        traceback.print_exc()
 
         error_message = str(exc)
 
@@ -7069,78 +7218,64 @@ async def ingest_image_intelligence(
 
             status_code = 502
 
-        error_response = (
-            RuntimeErrorResponse.build(
-                trace_id=request_trace_id,
-                error_code=error_code,
-                message=error_message,
-                stage="vision_runtime",
-                failed_step="Vision Runtime",
-                source_type="image",
-            )
-        )
-
-        return JSONResponse(
+        return _governed_error_response(
+            trace_id=request_trace_id,
             status_code=status_code,
-            content=error_response,
+            error_code=error_code,
+            message=error_message,
+            stage="vision_runtime",
+            failed_step="Vision Runtime",
+            source_type="image",
         )
 
     except ValueError as exc:
-        print(
-            "\n[SVACS IMAGE ENDPOINT] "
-            "Validation Error"
+        logger.warning(
+            "Image intelligence validation failed request_id=%s trace_id=%s reason=%s",
+            request_id,
+            request_trace_id,
+            exc,
         )
-
-        print(f"Trace ID: {request_trace_id}")
-
-        print(f"Error: {exc}")
-
-        traceback.print_exc()
-
-        error_response = (
-            RuntimeErrorResponse.build(
-                trace_id=request_trace_id,
-                error_code="INVALID_IMAGE_INPUT",
-                message=str(exc),
-                stage="image_ingestion",
-                failed_step="Image Ingestion",
-                source_type="image",
-            )
+        _log_ingestion_failure(
+            endpoint="/api/v1/intelligence/image",
+            request_id=request_id,
+            input_type="image",
+            trace_id=request_trace_id,
+            validation_result="failed",
+            processing_time_ms=int((time.perf_counter() - started_at) * 1000),
         )
-
-        return JSONResponse(
+        return _governed_error_response(
+            trace_id=request_trace_id,
             status_code=400,
-            content=error_response,
+            error_code="INVALID_IMAGE_INPUT",
+            message=str(exc),
+            stage="image_ingestion",
+            failed_step="Image Ingestion",
+            source_type="image",
         )
 
     except Exception as exc:
-        print("\n[SVACS IMAGE ENDPOINT] Unexpected Error")
-        print(f"Trace ID: {request_trace_id}")
-        print(f"Error Type: {type(exc).__name__}")
-        print(f"Error: {exc}")
-        traceback.print_exc()
-
-        error_response = (
-            RuntimeErrorResponse.build(
-                trace_id=request_trace_id,
-                error_code=(
-                    "IMAGE_INTELLIGENCE_FAILED"
-                ),
-                message=(
-                    f"{type(exc).__name__}: "
-                    f"{str(exc)}"
-                ),
-                stage="image_intelligence",
-                failed_step=(
-                    "Image Intelligence"
-                ),
-                source_type="image",
-            )
+        logger.error(
+            "Image intelligence failed request_id=%s trace_id=%s",
+            request_id,
+            request_trace_id,
+            exc_info=True,
         )
-
-        return JSONResponse(
+        _log_ingestion_failure(
+            endpoint="/api/v1/intelligence/image",
+            request_id=request_id,
+            input_type="image",
+            trace_id=request_trace_id,
+            validation_result="passed",
+            processing_time_ms=int((time.perf_counter() - started_at) * 1000),
+        )
+        return _governed_error_response(
+            trace_id=request_trace_id,
             status_code=500,
-            content=error_response,
+            error_code="IMAGE_INTELLIGENCE_FAILED",
+            message=f"{type(exc).__name__}: {str(exc)}",
+            stage="image_intelligence",
+            failed_step="Image Intelligence",
+            source_type="image",
         )
 
 # ==========================================================
@@ -7149,7 +7284,8 @@ async def ingest_image_intelligence(
 
 @app.post("/api/v1/intelligence/manual")
 async def ingest_manual_intelligence(
-    request: ManualIntelligenceRequest
+    request: ManualIntelligenceRequest,
+    http_request: Request,
 ):
     """
     Samachar manual intelligence ingestion endpoint.
@@ -7161,6 +7297,9 @@ async def ingest_manual_intelligence(
 
     Vision Runtime is not invoked.
     """
+
+    request_trace_id = f"SAM-{uuid.uuid4()}"
+    started_at = time.perf_counter()
 
     try:
         manual_service = (
@@ -7174,41 +7313,64 @@ async def ingest_manual_intelligence(
             )
         )
 
+        _log_ingestion_evidence(
+            endpoint="/api/v1/intelligence/manual",
+            request_id=http_request.state.request_id,
+            canonical_intelligence=canonical_intelligence,
+            validation_result="passed",
+            processing_time_ms=int((time.perf_counter() - started_at) * 1000),
+        )
         return canonical_intelligence
 
     except ValueError as exc:
-        print(
-            "\n[MANUAL INTELLIGENCE ENDPOINT] "
-            "Validation Error"
+        logger.warning(
+            "Manual intelligence validation failed request_id=%s trace_id=%s reason=%s",
+            http_request.state.request_id,
+            request_trace_id,
+            exc,
         )
-        print(f"Error: {exc}")
-
-        raise HTTPException(
+        _log_ingestion_failure(
+            endpoint="/api/v1/intelligence/manual",
+            request_id=http_request.state.request_id,
+            input_type="manual",
+            trace_id=request_trace_id,
+            validation_result="failed",
+            processing_time_ms=int((time.perf_counter() - started_at) * 1000),
+        )
+        return _governed_error_response(
+            trace_id=request_trace_id,
             status_code=400,
-            detail=str(exc),
-        ) from exc
+            error_code="INVALID_MANUAL_INPUT",
+            message=str(exc),
+            stage="manual_ingestion",
+            failed_step="Input Validation",
+            source_type="manual",
+        )
 
     except Exception as exc:
-        print(
-            "\n[MANUAL INTELLIGENCE ENDPOINT] "
-            "Unexpected Error"
+        logger.error(
+            "Manual intelligence failed request_id=%s trace_id=%s",
+            http_request.state.request_id,
+            request_trace_id,
+            exc_info=True,
         )
-        print(
-            f"Error Type: "
-            f"{type(exc).__name__}"
+        _log_ingestion_failure(
+            endpoint="/api/v1/intelligence/manual",
+            request_id=http_request.state.request_id,
+            input_type="manual",
+            trace_id=request_trace_id,
+            validation_result="passed",
+            processing_time_ms=int((time.perf_counter() - started_at) * 1000),
         )
-        print(f"Error: {exc}")
-
-        traceback.print_exc()
-
-        raise HTTPException(
+        return _governed_error_response(
+            trace_id=request_trace_id,
             status_code=500,
-            detail=(
-                "Manual intelligence processing "
-                f"failed: {type(exc).__name__}: "
-                f"{str(exc)}"
-            ),
-        ) from exc
+            error_code="MANUAL_INTELLIGENCE_FAILED",
+            message=f"Manual intelligence processing failed: {type(exc).__name__}",
+            stage="manual_ingestion",
+            failed_step="Manual Intelligence",
+            source_type="manual",
+        )
     
 # ==========================================================
 # Samachar Satellite Feed Ingestion Endpoint
@@ -7216,7 +7378,8 @@ async def ingest_manual_intelligence(
 
 @app.post("/api/v1/intelligence/satellite")
 async def ingest_satellite_intelligence(
-    request: SatelliteIntelligenceRequest
+    request: SatelliteIntelligenceRequest,
+    http_request: Request,
 ):
     """
     Samachar future satellite feed ingestion interface.
@@ -7229,6 +7392,9 @@ async def ingest_satellite_intelligence(
 
     No satellite image processing is performed here.
     """
+
+    request_trace_id = f"SAM-{uuid.uuid4()}"
+    started_at = time.perf_counter()
 
     try:
         satellite_service = (
@@ -7248,41 +7414,64 @@ async def ingest_satellite_intelligence(
             )
         )
 
+        _log_ingestion_evidence(
+            endpoint="/api/v1/intelligence/satellite",
+            request_id=http_request.state.request_id,
+            canonical_intelligence=canonical_intelligence,
+            validation_result="passed",
+            processing_time_ms=int((time.perf_counter() - started_at) * 1000),
+        )
         return canonical_intelligence
 
     except ValueError as exc:
-        print(
-            "\n[SATELLITE INTELLIGENCE ENDPOINT] "
-            "Validation Error"
+        logger.warning(
+            "Satellite intelligence validation failed request_id=%s trace_id=%s reason=%s",
+            http_request.state.request_id,
+            request_trace_id,
+            exc,
         )
-        print(f"Error: {exc}")
-
-        raise HTTPException(
+        _log_ingestion_failure(
+            endpoint="/api/v1/intelligence/satellite",
+            request_id=http_request.state.request_id,
+            input_type="satellite_feed",
+            trace_id=request_trace_id,
+            validation_result="failed",
+            processing_time_ms=int((time.perf_counter() - started_at) * 1000),
+        )
+        return _governed_error_response(
+            trace_id=request_trace_id,
             status_code=400,
-            detail=str(exc),
-        ) from exc
+            error_code="INVALID_SATELLITE_INPUT",
+            message=str(exc),
+            stage="satellite_ingestion",
+            failed_step="Input Validation",
+            source_type="satellite_feed",
+        )
 
     except Exception as exc:
-        print(
-            "\n[SATELLITE INTELLIGENCE ENDPOINT] "
-            "Unexpected Error"
+        logger.error(
+            "Satellite intelligence failed request_id=%s trace_id=%s",
+            http_request.state.request_id,
+            request_trace_id,
+            exc_info=True,
         )
-        print(
-            f"Error Type: "
-            f"{type(exc).__name__}"
+        _log_ingestion_failure(
+            endpoint="/api/v1/intelligence/satellite",
+            request_id=http_request.state.request_id,
+            input_type="satellite_feed",
+            trace_id=request_trace_id,
+            validation_result="passed",
+            processing_time_ms=int((time.perf_counter() - started_at) * 1000),
         )
-        print(f"Error: {exc}")
-
-        traceback.print_exc()
-
-        raise HTTPException(
+        return _governed_error_response(
+            trace_id=request_trace_id,
             status_code=500,
-            detail=(
-                "Satellite intelligence processing "
-                f"failed: {type(exc).__name__}: "
-                f"{str(exc)}"
-            ),
-        ) from exc
+            error_code="SATELLITE_INTELLIGENCE_FAILED",
+            message=f"Satellite intelligence processing failed: {type(exc).__name__}",
+            stage="satellite_ingestion",
+            failed_step="Satellite Intelligence",
+            source_type="satellite_feed",
+        )
 
 # Health check
 class LoginRequest(BaseModel):

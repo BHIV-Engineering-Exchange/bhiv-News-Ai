@@ -91,8 +91,8 @@ python -m uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 Access:
-- API root: `http://localhost:8000`
-- Swagger docs: `http://localhost:8000/docs`
+- API root: `http://localhost:8001`
+- Swagger docs: `http://localhost:8001/docs`
 
 ### Frontend (Next.js)
 
