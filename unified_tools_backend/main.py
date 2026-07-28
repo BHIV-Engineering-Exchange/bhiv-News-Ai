@@ -7037,9 +7037,15 @@ async def ingest_image_intelligence(
         -> Canonical Intelligence
         -> SVACS Contract Mapping
     """
-    request_trace_id = (f"SAM-{uuid.uuid4()}")
     started_at = time.perf_counter()
     request_id = request.state.request_id
+
+    execution_context = {
+        "execution_id": f"EXEC-{uuid.uuid4()}",
+        "trace_id": f"SAM-{uuid.uuid4()}",
+    }
+
+    request_trace_id = execution_context["trace_id"]
 
     allowed_content_types = {
         "image/jpeg",
@@ -7112,6 +7118,7 @@ async def ingest_image_intelligence(
         canonical_intelligence = vision_service.process(
             image_bytes=image_bytes,
             filename=image.filename or "uploaded_image",
+            execution_context=execution_context,
             content_type=image.content_type or "image/jpeg",
             return_explainable_image=False,
         )

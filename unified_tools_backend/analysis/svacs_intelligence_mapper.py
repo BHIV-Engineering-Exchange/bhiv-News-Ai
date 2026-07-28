@@ -27,26 +27,34 @@ class SVACSIntelligenceMapper:
     }
 
     VESSEL_CLASS_MAPPING = {
+        # Cargo
         "cargo": "cargo",
         "cargo ship": "cargo",
         "cargo vessel": "cargo",
+        "container ship": "cargo",
+        "container vessel": "cargo",
 
+        # Tankers
         "tanker": "tanker",
         "oil tanker": "tanker",
+        "chemical tanker": "tanker",
+        "lng tanker": "tanker",
 
+        # Patrol
         "patrol": "patrol",
-        "patrol vessel": "patrol",
         "patrol boat": "patrol",
+        "patrol vessel": "patrol",
 
+        # Fishing
         "fishing": "fishing",
-        "fishing vessel": "fishing",
         "fishing boat": "fishing",
+        "fishing vessel": "fishing",
 
+        # Submarine
         "submarine": "submarine",
 
-        "vessel": "unknown",
+        # Default / Generic
         "ship": "unknown",
-        "boat": "unknown",
     }
 
     def map(self, canonical_intelligence: dict) -> dict:
@@ -212,10 +220,7 @@ class SVACSIntelligenceMapper:
             ),
         }
 
-    def _map_vessel_class(
-        self,
-        vision_label: str
-    ) -> str:
+    def _map_vessel_class(self,vision_label: str) -> str:
         """
         Maps Vision Runtime labels to the
         approved SVACS vessel taxonomy.

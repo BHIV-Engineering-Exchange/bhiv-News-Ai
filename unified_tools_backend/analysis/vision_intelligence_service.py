@@ -4,13 +4,16 @@ import re
 import time
 import uuid
 
+from pydantic import json
+
+from runtime.replay_store import ReplayStore
+
 from analysis.vision_runtime_client import VisionRuntimeClient
 from analysis.news_intelligence_service import NewsIntelligenceService
 
 from analysis.svacs_intelligence_mapper import (
     SVACSIntelligenceMapper
 )
-from runtime.replay_store import ReplayStore
 
 class VisionIntelligenceService:
     """
@@ -38,6 +41,7 @@ class VisionIntelligenceService:
         self,
         image_bytes: bytes,
         filename: str,
+        execution_context: dict,
         content_type: str = "image/jpeg",
         return_explainable_image: bool = False
     ) -> dict:
@@ -47,33 +51,46 @@ class VisionIntelligenceService:
         if not isinstance(image_bytes, bytes) or not image_bytes:
             raise ValueError("Image bytes are required")
 
+        execution_id = execution_context["execution_id"]
+        trace_id = execution_context["trace_id"]
+
+        processing_times = {}
+
         input_fingerprint = (
             "sha256:"
-            + hashlib.sha256(
-                content_type.encode("utf-8") + b":" + image_bytes
-            ).hexdigest()
+            + hashlib.sha256(image_bytes).hexdigest()
         )
 
-        replay_record = ReplayStore.get(input_fingerprint)
+        print(f"[Replay] Fingerprint: {input_fingerprint}")
+
+        replay_record = ReplayStore.get(
+            input_fingerprint
+        )
 
         if replay_record is not None:
+            print("\n========== REPLAY HIT ==========")
+
             replay_result = replay_record["result"]
+
             replay_result["replay"] = {
                 "status": "HIT",
                 "input_fingerprint": input_fingerprint,
                 "original_trace_id": replay_record["trace_id"],
             }
+
+            print(replay_result["replay"])
+
             return replay_result
 
-        trace_id = f"SAM-{uuid.uuid4()}"
-
-        processing_times = {}
+        print("\n========== REPLAY MISS ==========")
 
         # ==========================================
         # 1. Vision Runtime Invocation
         # ==========================================
 
         start = time.perf_counter()
+
+        print("[Vision Runtime] Calling Vision Runtime...")
 
         vision_result = self.vision_client.analyze_image(
             image_bytes=image_bytes,
@@ -158,6 +175,7 @@ class VisionIntelligenceService:
         canonical_response = {
             "schema_version": self.SCHEMA_VERSION,
 
+            "execution_id": execution_id,
             "trace_id": trace_id,
 
             "timestamp": datetime.now(
@@ -221,13 +239,31 @@ class VisionIntelligenceService:
 
             "processing_trace": {
                 "status": "SUCCESS",
+                "execution_id": execution_id,
+                "trace_id": trace_id,
+                "vision_replay_id": vision_result.get("replay_id"),
 
                 "steps": [
-                    "Image Ingestion",
-                    "Vision Runtime",
-                    "OCR Normalization",
-                    "Samachar Intelligence",
-                    "Canonical Mapping"
+                    {
+                        "name": "Image Ingestion",
+                        "status": "SUCCESS"
+                    },
+                    {
+                        "name": "Vision Runtime",
+                        "status": "SUCCESS"
+                    },
+                    {
+                        "name": "OCR Normalization",
+                        "status": "SUCCESS"
+                    },
+                    {
+                        "name": "Samachar Intelligence",
+                        "status": "SUCCESS"
+                    },
+                    {
+                        "name": "Canonical Mapping",
+                        "status": "SUCCESS"
+                    }
                 ],
 
                 "processing_time": processing_times
@@ -239,31 +275,38 @@ class VisionIntelligenceService:
             },
 
             "replay": {
-                "status": "MISS",
-                "input_fingerprint": input_fingerprint,
-                "original_trace_id": trace_id,
-            },
+                    "status": "MISS",
+                    "input_fingerprint": (
+                        input_fingerprint
+                    ),
+                    "original_trace_id": trace_id,
+                },
 
-            "errors": []
-        }
+                "errors": []
+            }
 
         processing_times["canonical_mapping"] = round(
-            time.perf_counter() - start,
-            3
-        )
+                time.perf_counter() - start,
+                3
+            )
 
         processing_times["total"] = round(
-            time.perf_counter() - total_start,
-            3
-        )
+                time.perf_counter() - total_start,
+                3
+            )
+
+        print("\nSaving result into ReplayStore...")
+        print(canonical_response["replay"])
 
         ReplayStore.save(
-            input_fingerprint=input_fingerprint,
-            trace_id=trace_id,
-            input_type="image",
-            schema_version=self.SCHEMA_VERSION,
-            result=canonical_response,
-        )
+                input_fingerprint=input_fingerprint,
+                trace_id=trace_id,
+                input_type="image",
+                schema_version=self.SCHEMA_VERSION,
+                result=canonical_response,
+            )
+
+        print(canonical_response["processing_trace"])
 
         return canonical_response
 
