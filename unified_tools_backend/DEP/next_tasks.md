@@ -1,10 +1,27 @@
 # Next Tasks
 
-Future improvements outside the scope of the current sprint include:
+## Immediate Tasks
 
-- Runtime health dashboards
-- OpenTelemetry integration
-- Additional replay analytics
-- Extended production monitoring
-- Automated latency reporting
-- Long-term replay persistence
+- Verify end-to-end execution across all participating modules.
+- Collect runtime evidence from downstream teams.
+
+---
+
+## Documentation
+
+- Prepare Offline Deployment Guide.
+- Prepare Dependency Audit.
+- Prepare Executive Assessment.
+- Prepare Joint Handover Documentation.
+
+---
+
+## Final Sprint Deliverables
+
+- Joint DEP
+- Joint Evidence Packet
+- Joint Executive Assessment
+- Offline Deployment Guide
+- Integration Video
+- Runtime Architecture
+- Cross-Team Dependency Matrix

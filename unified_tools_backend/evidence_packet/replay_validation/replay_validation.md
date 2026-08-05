@@ -1,26 +1,48 @@
 # Replay Validation
 
-## Replay MISS
+## Objective
 
-First execution generated:
-
-- new fingerprint
-- Vision Runtime invocation
-- ReplayStore persistence
+Validate deterministic execution by ensuring identical inputs produce replay-safe behavior.
 
 ---
 
-## Replay HIT
+## Validation Scenarios
 
-Second execution using the identical image:
+### Scenario 1
 
-- identical fingerprint
-- ReplayStore retrieval
-- Vision Runtime skipped
-- identical canonical intelligence returned
+Input:
+
+New Image
+
+Result:
+
+Replay MISS
+
+---
+
+### Scenario 2
+
+Input:
+
+Previously processed image
+
+Result:
+
+Replay HIT
+
+---
+
+## Replay Behaviour
+
+| Scenario | Status |
+| ------- | ------- |
+| MISS | Validated |
+| HIT | Validated |
+| Fingerprint Generation | Validated |
+| Replay Store | Validated |
 
 ---
 
 ## Result
 
-Replay behaviour is deterministic and consistent across repeated executions.
+Replay continuity and deterministic execution were successfully validated.

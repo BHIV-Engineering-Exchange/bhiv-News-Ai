@@ -2,17 +2,32 @@
 
 ## First Execution (Replay MISS)
 
-### Request
+---
 
-**Endpoint**
+## Successful Runtime Events
+
+- Image received successfully
+- Vision Runtime invoked
+- OCR completed
+- Canonical intelligence generated
+- Replay fingerprint calculated
+- Replay validation executed
+- SVACS contract validated
+- Bucket artifact stored successfully
+
+---
+
+### Request (Replay MISS)
+
+#### Endpoint
 
 ```http
 POST /api/v1/intelligence/image
 ```
 
-**Input**
+#### Input
 
-```
+```text
 cargo_ship.jpg
 ```
 
@@ -97,25 +112,16 @@ HTTP Response      : 200 OK
 
 ---
 
-# Second Execution (Replay HIT)
+## Second Execution (Replay HIT)
 
-### Request
-
-**Endpoint**
+### Request (Replay HIT)
 
 ```http
 POST /api/v1/intelligence/image
-```
 
-**Input**
+(Same image uploaded again.)
 
-```
-cargo_ship.jpg
-```
-
-*(Same image uploaded again.)*
-
-### Runtime Output
+### Runtime Output (Replay HIT)
 
 ```text
 [Replay] Fingerprint:
@@ -128,7 +134,7 @@ Vision Runtime:
 Skipped (cached replay used)
 ```
 
-### Replay Information
+### Replay Information (Replay HIT)
 
 ```json
 {
@@ -138,22 +144,50 @@ Skipped (cached replay used)
 }
 ```
 
+### Bucket
+
+```text
+========== BUCKET ==========
+{'success': True, 'artifact_id': '9d018606-42ee-4f31-9b4c-0e4872a43c53', 'hash': '1d77aaf3dc32c38008b0993abd02e3e2079507b2f0f19f9638af84963a68fd5e', 'parent_hash': '2bdc81f2450675581befed4ae644078065e4e4e0f9dd93094ce07a2b6c49749a', 'timestamp': '2026-08-04T09:51:35.135586+00:00', 'storage_type': 'append_only', 'message': 'Artifact stored successfully in append-only log'}
+```
+
 ---
 
-# Validation Summary
+## Example Runtime Sequence
 
-| Validation | Result |
-|------------|--------|
-| SHA-256 Fingerprint Generation | ✅ PASS |
-| Replay MISS | ✅ PASS |
-| Replay HIT | ✅ PASS |
-| Live Vision Runtime Invocation | ✅ PASS |
-| Vision Runtime Replay ID Preservation | ✅ PASS |
-| Execution ID Propagation | ✅ PASS |
-| Trace ID Propagation | ✅ PASS |
-| OCR Normalization | ✅ PASS |
-| Canonical Intelligence Generation | ✅ PASS |
-| Processing Trace Generation | ✅ PASS |
-| Runtime Metrics Collection | ✅ PASS |
-| SVACS Contract Validation | ✅ PASS |
-| HTTP Response | ✅ 200 OK |
+```text
+Image Uploaded
+↓
+
+Vision Runtime Invoked
+
+↓
+
+OCR Normalized
+
+↓
+
+Canonical Intelligence Generated
+
+↓
+
+Replay Validated
+
+↓
+
+SVACS Contract Validation Passed
+
+↓
+
+Artifact Stored in Bucket
+
+↓
+
+Response Returned
+```
+
+---
+
+## Runtime Result
+
+No runtime failures were observed during the validation scenarios.

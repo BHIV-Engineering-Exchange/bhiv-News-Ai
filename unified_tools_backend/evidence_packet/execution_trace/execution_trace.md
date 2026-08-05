@@ -38,7 +38,7 @@ TANTRA Runtime
 
 ---
 
-## Trace Information
+## Trace Information / components
 
 Each execution preserves:
 

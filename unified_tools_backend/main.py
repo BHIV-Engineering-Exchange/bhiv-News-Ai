@@ -32,7 +32,7 @@ from urllib.parse import urlparse, parse_qs
 import sys
 import hashlib
 
-
+from analysis.bucket_client import BucketClient
 from analysis.news_intelligence_service import NewsIntelligenceService
 from analysis.vision_intelligence_service import (VisionIntelligenceService)
 
@@ -7115,6 +7115,8 @@ async def ingest_image_intelligence(
 
         vision_service = VisionIntelligenceService()
 
+        bucket_client = BucketClient()
+
         canonical_intelligence = vision_service.process(
             image_bytes=image_bytes,
             filename=image.filename or "uploaded_image",
@@ -7164,6 +7166,18 @@ async def ingest_image_intelligence(
                 failed_step="SVACS Contract Validation",
                 source_type="image",
             )
+
+        #offline
+        try:
+            bucket_response = (
+                bucket_client.store_artifact(canonical_intelligence))
+
+            print("\n========== BUCKET ==========")
+            print(bucket_response)
+
+        except Exception as exc:
+            logger.warning("Bucket persistence failed: %s",exc)
+
 
         _log_ingestion_evidence(
             endpoint="/api/v1/intelligence/image",

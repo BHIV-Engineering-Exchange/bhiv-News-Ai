@@ -1,27 +1,21 @@
 # Blockers
 
-## External Dependencies
+## Current Blockers
 
-### Vision Runtime
-
-Testing depended on the availability of the live Vision Runtime service and active ngrok/deployed endpoint.
-
-### Cross-Team Validation
-
-Final ecosystem validation required coordination with:
-
-- Vision Runtime
-- SVACS
-- Downstream ecosystem services
-
-### Production Demonstration
-
-End-to-end production validation depended on synchronized availability of integrated ecosystem components.
+No active implementation blockers.
 
 ---
 
-## Resolution
+## Previously Resolved
 
-All implementation work was completed successfully.
+- Vision Runtime online dependency removed.
+- Local OCR execution validated.
+- Replay continuity validated.
+- Bucket artifact persistence integrated.
+- Canonical intelligence contract validated.
 
-Remaining dependencies relate only to cross-team validation and final production evidence collection.
+---
+
+## Pending External Validation
+
+- Joint ecosystem certification.

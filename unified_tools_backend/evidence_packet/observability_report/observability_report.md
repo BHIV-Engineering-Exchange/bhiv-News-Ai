@@ -1,29 +1,29 @@
 # Observability Report
 
-## Execution Visibility
+## Runtime Visibility
 
-Each pipeline execution records:
+The pipeline exposes the following execution information:
 
 - execution_id
 - trace_id
-- Vision Runtime replay_id
-- processing_trace
-- runtime metrics
+- vision_replay_id
+- processing stages
+- runtime status
+- processing duration
 
 ---
 
-## Observability Coverage
+## Logged Stages
 
-Validated:
-
-- execution propagation
-- trace propagation
-- runtime metrics
-- replay evidence
-- canonical processing visibility
+- Image Ingestion
+- Vision Runtime
+- OCR Normalization
+- Canonical Intelligence
+- SVACS Validation
+- Bucket Persistence
 
 ---
 
-## Result
+## Outcome
 
-Every execution is traceable from ingestion through canonical intelligence generation.
+Runtime execution remained observable throughout the implemented integration flow.
