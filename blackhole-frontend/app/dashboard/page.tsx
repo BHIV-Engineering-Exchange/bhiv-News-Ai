@@ -125,21 +125,6 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Performance Chart Placeholder */}
-        <div className="mt-8 glass-effect rounded-xl p-6 border border-white/20">
-          <h2 className="text-2xl font-semibold text-white mb-6 flex items-center">
-            <TrendingUp className="w-6 h-6 mr-3 text-purple-400" />
-            Performance Overview
-          </h2>
-          
-          <div className="h-64 bg-black/30 rounded-lg flex items-center justify-center">
-            <div className="text-center">
-              <TrendingUp className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-              <p className="text-gray-400">Performance charts coming soon</p>
-              <p className="text-sm text-gray-500 mt-2">Real-time analytics and insights</p>
-            </div>
-          </div>
-        </div>
       </main>
     </div>
   )

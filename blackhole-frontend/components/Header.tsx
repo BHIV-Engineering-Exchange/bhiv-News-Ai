@@ -40,6 +40,7 @@ export default function Header({ backendStatus }: HeaderProps) {
     { href: '/analyze', label: '🔬 Analyze', id: 'analyze' },
     { href: '/dashboard', label: '📊 Analytics', id: 'dashboard' },
     { href: '/advanced', label: '🧪 Advanced', id: 'advanced' },
+    { href: '/ingest', label: '📥 Ingest', id: 'ingest' },
   ]
 
   const isActive = (href: string) => {

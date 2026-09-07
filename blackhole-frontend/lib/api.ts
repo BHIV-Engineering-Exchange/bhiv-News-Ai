@@ -447,6 +447,8 @@ export interface SankalpItem {
   priority_score: number
   trend_score: number
   title?: string
+  url?: string
+  source?: string
   summary_short?: string
   summary_medium?: string
   category?: string

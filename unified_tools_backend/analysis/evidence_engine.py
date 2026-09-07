@@ -52,11 +52,13 @@ class EvidenceEngine:
 
                         # Lowercase checks should operate on safe strings
                         try:
-                            contains_entity = entity.lower() in sentence.lower()
+                            sentence_check = sentence.lower()
+                            entity_check = entity.lower()
+                            contains_entity = entity_check in sentence_check
                         except Exception:
                             contains_entity = False
 
-                        if contains_entity:
+                        if contains_entity and re.search(r"[A-Za-z]", sentence):
                             classification_matches = [
                                 keyword
                                 for keyword in matched_keywords

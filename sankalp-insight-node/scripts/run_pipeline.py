@@ -3,18 +3,45 @@ import sys
 import subprocess
 import json
 
-def run(cmd, cwd=None):
-    p = subprocess.Popen(cmd, cwd=cwd or os.getcwd(), stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
-    out, _ = p.communicate()
-    return p.returncode, out.decode('utf-8', errors='ignore')
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+def run(script, *args):
+    command = [sys.executable, os.path.join(ROOT, "scripts", script), *args]
+    p = subprocess.run(
+        command,
+        cwd=ROOT,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        check=False,
+    )
+    return p.returncode, p.stdout
 
 def main():
-    rc, out = run("python scripts/run_ingest.py")
-    rc, out = run("python scripts/format_metadata.py")
-    for avatar in ["asha", "kiran", "dev"]:
-        rc, out = run(f"python scripts/generate_audio.py --avatar {avatar} --voice default --limit 10")
-    rc, out = run("python scripts/smart_feed.py")
-    print(json.dumps({"status": "ok"}))
+    stages = [
+        ("run_ingest.py", ()),
+        ("format_metadata.py", ()),
+    ]
+    stages.extend(
+        ("generate_audio.py", ("--avatar", avatar, "--voice", "default", "--limit", "10"))
+        for avatar in ("asha", "kiran", "dev")
+    )
+    stages.append(("smart_feed.py", ()))
+    output = []
+    for script, args in stages:
+        rc, stage_output = run(script, *args)
+        output.append(stage_output)
+        if rc != 0:
+            print(json.dumps({
+                "status": "error",
+                "stage": script,
+                "return_code": rc,
+                "output": stage_output,
+            }))
+            return rc
+
+    print(json.dumps({"status": "ok", "output": output}))
+    return 0
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

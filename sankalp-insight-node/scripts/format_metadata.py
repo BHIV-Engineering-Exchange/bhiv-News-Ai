@@ -49,6 +49,8 @@ def process_item(it):
     out = {
         "id": it.get("id") or it.get("link") or os.urandom(8).hex(),
         "title": title,
+        "url": it.get("link"),
+        "source": it.get("source"),
         "summary_short": s_short,
         "summary_medium": s_med,
         "category": cat,

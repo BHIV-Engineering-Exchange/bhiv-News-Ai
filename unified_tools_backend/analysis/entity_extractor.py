@@ -50,6 +50,15 @@ class EntityExtractor:
         if not text:
             return self._empty_result()
 
+        # Normalize malformed text before NLP/NER. This avoids binary/OCR garbage
+        # such as control chars or punctuation-only fragments being treated as entities.
+        if isinstance(text, (bytes, bytearray)):
+            text = text.decode("utf-8", errors="replace")
+
+        text = str(text)
+        text = text.replace('\r\n', '\n').replace('\r', '\n')
+        text = re.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f-\x9f]", " ", text)
+
         #3 preserve original doc formating for resume header detection
         raw_text = text
 
@@ -70,11 +79,23 @@ class EntityExtractor:
         # spaCy extraction
         for entity in doc.ents:
             value = entity.text.strip()
-            
+            if not value:
+                continue
+
+            # Remove control chars and malformed fragments before validation.
+            value = re.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f-\x9f]", " ", value)
+            value = re.sub(r"\s+", " ", value).strip()
+            if not value:
+                continue
+
+            # Reject garbage or punctuation-only entities such as "{#" or binary noise.
+            if not re.search(r"[A-Za-z]", value):
+                continue
+
             normalized = (value.lower().strip())
             if normalized.startswith(("scikit","numpy","pandas")):
                 continue
-            
+             
             # OCR merged token
             if re.search(r"[a-z][A-Z]", value):
                 continue
@@ -87,17 +108,17 @@ class EntityExtractor:
             # become ORG/GPE/PERSON
             if normalized in self.TECH_STACK_TERMS:
                 continue
-
+ 
             # --->Early Noise Filtering
             if len(value) <= 3 and value.isupper():
                 continue
 
             if re.search(r"\d{3,}",value):
                 continue
-
+ 
             if re.search(r"[a-z][A-Z]", value):
                 continue
-
+ 
             if len(value.split()) > 6:
                 continue
 

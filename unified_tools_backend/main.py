@@ -35,6 +35,8 @@ import hashlib
 from analysis.bucket_client import BucketClient
 from analysis.news_intelligence_service import NewsIntelligenceService
 from analysis.vision_intelligence_service import (VisionIntelligenceService)
+from ingestion.large_file_handler import LargeFileHandler
+
 
 from analysis.svacs_intelligence_mapper import (SVACSIntelligenceMapper)
 from analysis.manual_intelligence_service import (ManualIntelligenceService)
@@ -42,6 +44,7 @@ from analysis.satellite_intelligence_service import (SatelliteIntelligenceServic
 import uuid
 from runtime.error_response import (RuntimeErrorResponse)
 from runtime.svacs_contract_validator import (SVACSContractValidator)
+from runtime.output_store import (OutputIntegrityError,OutputNotFoundError,OutputStore,OutputStoreError,)
 
 load_dotenv()
 
@@ -7517,201 +7520,6 @@ async def ingest_satellite_intelligence(
             source_type="image",
         )
 
-# ==========================================================
-# Samachar Manual Intelligence Ingestion Endpoint
-# ==========================================================
-
-@app.post("/api/v1/intelligence/manual")
-async def ingest_manual_intelligence(
-    request: ManualIntelligenceRequest,
-    http_request: Request,
-):
-    """
-    Samachar manual intelligence ingestion endpoint.
-
-    Flow:
-    Manual Operator Input
-        -> Samachar Intelligence
-        -> Canonical Structured Intelligence
-
-    Vision Runtime is not invoked.
-    """
-
-    request_trace_id = f"SAM-{uuid.uuid4()}"
-    started_at = time.perf_counter()
-
-    try:
-        manual_service = (
-            ManualIntelligenceService()
-        )
-
-        canonical_intelligence = (
-            manual_service.process(
-                content=request.content,
-                source=request.source,
-            )
-        )
-
-        _log_ingestion_evidence(
-            endpoint="/api/v1/intelligence/manual",
-            request_id=http_request.state.request_id,
-            canonical_intelligence=canonical_intelligence,
-            validation_result="passed",
-            processing_time_ms=int((time.perf_counter() - started_at) * 1000),
-        )
-        return canonical_intelligence
-
-    except ValueError as exc:
-        logger.warning(
-            "Manual intelligence validation failed request_id=%s trace_id=%s reason=%s",
-            http_request.state.request_id,
-            request_trace_id,
-            exc,
-        )
-        _log_ingestion_failure(
-            endpoint="/api/v1/intelligence/manual",
-            request_id=http_request.state.request_id,
-            input_type="manual",
-            trace_id=request_trace_id,
-            validation_result="failed",
-            processing_time_ms=int((time.perf_counter() - started_at) * 1000),
-        )
-        return _governed_error_response(
-            trace_id=request_trace_id,
-            status_code=400,
-            error_code="INVALID_MANUAL_INPUT",
-            message=str(exc),
-            stage="manual_ingestion",
-            failed_step="Input Validation",
-            source_type="manual",
-        )
-
-    except Exception as exc:
-        logger.error(
-            "Manual intelligence failed request_id=%s trace_id=%s",
-            http_request.state.request_id,
-            request_trace_id,
-            exc_info=True,
-        )
-        _log_ingestion_failure(
-            endpoint="/api/v1/intelligence/manual",
-            request_id=http_request.state.request_id,
-            input_type="manual",
-            trace_id=request_trace_id,
-            validation_result="passed",
-            processing_time_ms=int((time.perf_counter() - started_at) * 1000),
-        )
-        return _governed_error_response(
-            trace_id=request_trace_id,
-            status_code=500,
-            error_code="MANUAL_INTELLIGENCE_FAILED",
-            message=f"Manual intelligence processing failed: {type(exc).__name__}",
-            stage="manual_ingestion",
-            failed_step="Manual Intelligence",
-            source_type="manual",
-        )
-    
-# ==========================================================
-# Samachar Satellite Feed Ingestion Endpoint
-# ==========================================================
-
-@app.post("/api/v1/intelligence/satellite")
-async def ingest_satellite_intelligence(
-    request: SatelliteIntelligenceRequest,
-    http_request: Request,
-):
-    """
-    Samachar future satellite feed ingestion interface.
-
-    Current scope:
-    Satellite Feed Metadata
-        -> Validation
-        -> Provenance Capture
-        -> Canonical Ingestion Envelope
-
-    No satellite image processing is performed here.
-    """
-
-    request_trace_id = f"SAM-{uuid.uuid4()}"
-    started_at = time.perf_counter()
-
-    try:
-        satellite_service = (
-            SatelliteIntelligenceService()
-        )
-
-        canonical_intelligence = (
-            satellite_service.process(
-                feed_id=request.feed_id,
-                timestamp_utc=(
-                    request.timestamp_utc
-                ),
-                image_reference=(
-                    request.image_reference
-                ),
-                metadata=request.metadata,
-            )
-        )
-
-        _log_ingestion_evidence(
-            endpoint="/api/v1/intelligence/satellite",
-            request_id=http_request.state.request_id,
-            canonical_intelligence=canonical_intelligence,
-            validation_result="passed",
-            processing_time_ms=int((time.perf_counter() - started_at) * 1000),
-        )
-        return canonical_intelligence
-
-    except ValueError as exc:
-        logger.warning(
-            "Satellite intelligence validation failed request_id=%s trace_id=%s reason=%s",
-            http_request.state.request_id,
-            request_trace_id,
-            exc,
-        )
-        _log_ingestion_failure(
-            endpoint="/api/v1/intelligence/satellite",
-            request_id=http_request.state.request_id,
-            input_type="satellite_feed",
-            trace_id=request_trace_id,
-            validation_result="failed",
-            processing_time_ms=int((time.perf_counter() - started_at) * 1000),
-        )
-        return _governed_error_response(
-            trace_id=request_trace_id,
-            status_code=400,
-            error_code="INVALID_SATELLITE_INPUT",
-            message=str(exc),
-            stage="satellite_ingestion",
-            failed_step="Input Validation",
-            source_type="satellite_feed",
-        )
-
-    except Exception as exc:
-        logger.error(
-            "Satellite intelligence failed request_id=%s trace_id=%s",
-            http_request.state.request_id,
-            request_trace_id,
-            exc_info=True,
-        )
-        _log_ingestion_failure(
-            endpoint="/api/v1/intelligence/satellite",
-            request_id=http_request.state.request_id,
-            input_type="satellite_feed",
-            trace_id=request_trace_id,
-            validation_result="passed",
-            processing_time_ms=int((time.perf_counter() - started_at) * 1000),
-        )
-        return _governed_error_response(
-            trace_id=request_trace_id,
-            status_code=500,
-            error_code="SATELLITE_INTELLIGENCE_FAILED",
-            message=f"Satellite intelligence processing failed: {type(exc).__name__}",
-            stage="satellite_ingestion",
-            failed_step="Satellite Intelligence",
-            source_type="satellite_feed",
-        )
-
 class LoginRequest(BaseModel):
     username: str
     password: str
@@ -7748,216 +7556,478 @@ def health():
 @app.post("/api/ingest", response_model=IngestionResponse)
 async def ingest_file(file: UploadFile = File(...)):
     """Canonical multimodal ingestion endpoint."""
+
     if not file:
         raise HTTPException(status_code=400, detail="File is required")
-        
+
     filename = file.filename
     if not filename:
         raise HTTPException(status_code=400, detail="Filename is missing")
-        
-    content = await file.read()
-    size_bytes = len(content)
-    
-    if size_bytes == 0:
-        raise HTTPException(status_code=400, detail="File is empty")
-        
-    content_type = file.content_type or ""
-    ext = os.path.splitext(filename)[1].lower()
-    
-    # Detect format and route
-    detected_format = "unknown"
-    selected_route = "unsupported"
-    
-    if "pdf" in content_type or ext == ".pdf":
-        detected_format = "pdf"
-        selected_route = "document_pdf_adapter"
-    elif "wordprocessingml" in content_type or ext == ".docx":
-        detected_format = "docx"
-        selected_route = "document_docx_adapter"
-    elif "text/plain" in content_type or ext == ".txt":
-        detected_format = "txt"
-        selected_route = "text_adapter"
-    elif "markdown" in content_type or ext == ".md":
-        detected_format = "markdown"
-        selected_route = "markdown_adapter"
-    elif "json" in content_type or ext == ".json":
-        detected_format = "json"
-        selected_route = "structured_adapter"
-    elif "csv" in content_type or ext == ".csv":
-        detected_format = "csv"
-        selected_route = "structured_adapter"
-    else:
-        raise HTTPException(status_code=415, detail=f"Unsupported format: {content_type} / {ext}")
-        
-    # Generate IDs and Fingerprint
-    execution_id = f"SAM-EXEC-{uuid.uuid4()}"
-    trace_id = f"SAM-TRACE-{uuid.uuid4()}"
-    
-    import hashlib
-    file_hash = hashlib.sha256(content).hexdigest()
-    
-    extracted_content = None
-    
-    if selected_route == "document_pdf_adapter":
-        from ingestion.adapters.document_pdf_adapter import DocumentPdfAdapter
+
+    file_path = None
+
+    try:
+        # ---------------------------------------------------------
+        # 1. Store upload on disk using bounded-memory ingestion
+        # ---------------------------------------------------------
         try:
-            adapter_result = DocumentPdfAdapter.extract(content, filename)
-            extracted_content = adapter_result.get("content")
-            processing_status = "success"
-        except Exception as e:
-            return JSONResponse(
-                status_code=400,
-                content=RuntimeErrorResponse.build(
-                    trace_id=trace_id,
-                    error_code="INVALID_PDF",
-                    message=f"Failed to parse PDF: {str(e)}",
-                    stage="ingestion",
-                    failed_step="document_pdf_adapter",
-                    source_type="pdf"
-                )
+            stored_upload = await LargeFileHandler.store_upload(
+                upload=file,
+                filename=filename,
             )
-    elif selected_route == "document_docx_adapter":
-        from ingestion.adapters.document_docx_adapter import DocumentDocxAdapter
-        try:
-            adapter_result = DocumentDocxAdapter.extract(content, filename)
-            extracted_content = adapter_result.get("content")
-            processing_status = "success"
-        except Exception as e:
-            return JSONResponse(
-                status_code=400,
-                content=RuntimeErrorResponse.build(
-                    trace_id=trace_id,
-                    error_code="INVALID_DOCX",
-                    message=f"Failed to parse DOCX: {str(e)}",
-                    stage="ingestion",
-                    failed_step="document_docx_adapter",
-                    source_type="docx"
-                )
+        except ValueError as e:
+            raise HTTPException(
+                status_code=413,
+                detail=str(e),
             )
-    elif selected_route == "text_adapter":
-        from ingestion.adapters.text_adapter import TextAdapter
-        try:
-            adapter_result = TextAdapter.extract(content, filename)
-            extracted_content = adapter_result.get("content")
-            processing_status = "success"
         except Exception as e:
-            return JSONResponse(
-                status_code=400,
-                content=RuntimeErrorResponse.build(
-                    trace_id=trace_id,
-                    error_code="INVALID_TXT",
-                    message=f"Failed to parse TXT: {str(e)}",
-                    stage="ingestion",
-                    failed_step="text_adapter",
-                    source_type="txt"
-                )
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to store uploaded file: {str(e)}",
             )
-    elif selected_route == "markdown_adapter":
-        from ingestion.adapters.markdown_adapter import MarkdownAdapter
-        try:
-            adapter_result = MarkdownAdapter.extract(content, filename)
-            extracted_content = adapter_result.get("content")
-            processing_status = "success"
-        except Exception as e:
-            return JSONResponse(
+
+        file_path = stored_upload.file_path
+        size_bytes = stored_upload.size_bytes
+        file_hash = stored_upload.sha256
+
+        # ---------------------------------------------------------
+        # 2. Validate stored file
+        # ---------------------------------------------------------
+        if size_bytes <= 0:
+            raise HTTPException(
                 status_code=400,
-                content=RuntimeErrorResponse.build(
-                    trace_id=trace_id,
-                    error_code="INVALID_MARKDOWN",
-                    message=f"Failed to parse Markdown: {str(e)}",
-                    stage="ingestion",
-                    failed_step="markdown_adapter",
-                    source_type="markdown"
-                )
+                detail="File is empty",
             )
-    elif selected_route == "structured_adapter":
-        from ingestion.adapters.structured_adapter import StructuredAdapter
+
+        # ---------------------------------------------------------
+        # 3. Detect format
+        # ---------------------------------------------------------
+        content_type = file.content_type or ""
+        ext = os.path.splitext(filename)[1].lower()
+
+        detected_format = "unknown"
+        selected_route = "unsupported"
+
+        if "pdf" in content_type or ext == ".pdf":
+            detected_format = "pdf"
+            selected_route = "document_pdf_adapter"
+
+        elif "wordprocessingml" in content_type or ext == ".docx":
+            detected_format = "docx"
+            selected_route = "document_docx_adapter"
+
+        elif "text/plain" in content_type or ext == ".txt":
+            detected_format = "txt"
+            selected_route = "text_adapter"
+
+        elif "markdown" in content_type or ext == ".md":
+            detected_format = "markdown"
+            selected_route = "markdown_adapter"
+
+        elif "json" in content_type or ext == ".json":
+            detected_format = "json"
+            selected_route = "structured_adapter"
+
+        elif "csv" in content_type or ext == ".csv":
+            detected_format = "csv"
+            selected_route = "structured_adapter"
+
+        else:
+            raise HTTPException(
+                status_code=415,
+                detail=f"Unsupported format: {content_type} / {ext}",
+            )
+
+        # ---------------------------------------------------------
+        # 4. Generate execution / trace identifiers
+        # ---------------------------------------------------------
+        execution_id = f"SAM-EXEC-{uuid.uuid4()}"
+        trace_id = f"SAM-TRACE-{uuid.uuid4()}"
+
+        # ---------------------------------------------------------
+        # 5. Extract content
+        #
+        # IMPORTANT:
+        # Do NOT call await file.read() here.
+        #
+        # LargeFileHandler already consumed the UploadFile stream
+        # and persisted it to file_path.
+        # ---------------------------------------------------------
+        extracted_content = None
+        processing_status = "failed"
+
+        if selected_route == "document_pdf_adapter":
+
+            from ingestion.adapters.document_pdf_adapter import (
+                DocumentPdfAdapter,
+            )
+
+            try:
+                adapter_result = DocumentPdfAdapter.extract_from_path(
+                    file_path,
+                    filename,
+                )
+
+                extracted_content = adapter_result.get("content")
+                processing_status = "success"
+
+            except Exception as e:
+                return JSONResponse(
+                    status_code=400,
+                    content=RuntimeErrorResponse.build(
+                        trace_id=trace_id,
+                        error_code="INVALID_PDF",
+                        message=f"Failed to parse PDF: {str(e)}",
+                        stage="ingestion",
+                        failed_step="document_pdf_adapter",
+                        source_type="pdf",
+                    ),
+                )
+
+        elif selected_route == "document_docx_adapter":
+
+            from ingestion.adapters.document_docx_adapter import (
+                DocumentDocxAdapter,
+            )
+
+            try:
+                # Prefer path-based extraction when available.
+                if hasattr(DocumentDocxAdapter, "extract_from_path"):
+                    adapter_result = DocumentDocxAdapter.extract_from_path(
+                        file_path,
+                        filename,
+                    )
+                else:
+                    # Compatibility fallback for the current adapter.
+                    #
+                    # This reads the stored file in bounded chunks rather
+                    # than consuming the original UploadFile stream.
+                    content = bytearray()
+
+                    with open(file_path, "rb") as stored_file:
+                        while True:
+                            chunk = stored_file.read(
+                                LargeFileHandler.DEFAULT_CHUNK_SIZE
+                            )
+
+                            if not chunk:
+                                break
+
+                            content.extend(chunk)
+
+                    adapter_result = DocumentDocxAdapter.extract(
+                        bytes(content),
+                        filename,
+                    )
+
+                extracted_content = adapter_result.get("content")
+                processing_status = "success"
+
+            except Exception as e:
+                return JSONResponse(
+                    status_code=400,
+                    content=RuntimeErrorResponse.build(
+                        trace_id=trace_id,
+                        error_code="INVALID_DOCX",
+                        message=f"Failed to parse DOCX: {str(e)}",
+                        stage="ingestion",
+                        failed_step="document_docx_adapter",
+                        source_type="docx",
+                    ),
+                )
+
+        elif selected_route == "text_adapter":
+
+            from ingestion.adapters.text_adapter import TextAdapter
+
+            try:
+                # Read from the stored file, not UploadFile.
+                #
+                # The adapter currently accepts bytes, so this is a
+                # compatibility path. For true GB-scale TXT support,
+                # TextAdapter should eventually expose extract_from_path().
+                content = bytearray()
+
+                with open(file_path, "rb") as stored_file:
+                    while True:
+                        chunk = stored_file.read(
+                            LargeFileHandler.DEFAULT_CHUNK_SIZE
+                        )
+
+                        if not chunk:
+                            break
+
+                        content.extend(chunk)
+
+                adapter_result = TextAdapter.extract(
+                    bytes(content),
+                    filename,
+                )
+
+                extracted_content = adapter_result.get("content")
+                processing_status = "success"
+
+            except Exception as e:
+                return JSONResponse(
+                    status_code=400,
+                    content=RuntimeErrorResponse.build(
+                        trace_id=trace_id,
+                        error_code="INVALID_TXT",
+                        message=f"Failed to parse TXT: {str(e)}",
+                        stage="ingestion",
+                        failed_step="text_adapter",
+                        source_type="txt",
+                    ),
+                )
+
+        elif selected_route == "markdown_adapter":
+
+            from ingestion.adapters.markdown_adapter import MarkdownAdapter
+
+            try:
+                content = bytearray()
+
+                with open(file_path, "rb") as stored_file:
+                    while True:
+                        chunk = stored_file.read(
+                            LargeFileHandler.DEFAULT_CHUNK_SIZE
+                        )
+
+                        if not chunk:
+                            break
+
+                        content.extend(chunk)
+
+                adapter_result = MarkdownAdapter.extract(
+                    bytes(content),
+                    filename,
+                )
+
+                extracted_content = adapter_result.get("content")
+                processing_status = "success"
+
+            except Exception as e:
+                return JSONResponse(
+                    status_code=400,
+                    content=RuntimeErrorResponse.build(
+                        trace_id=trace_id,
+                        error_code="INVALID_MARKDOWN",
+                        message=f"Failed to parse Markdown: {str(e)}",
+                        stage="ingestion",
+                        failed_step="markdown_adapter",
+                        source_type="markdown",
+                    ),
+                )
+
+        elif selected_route == "structured_adapter":
+
+            from ingestion.adapters.structured_adapter import StructuredAdapter
+
+            try:
+                content = bytearray()
+
+                with open(file_path, "rb") as stored_file:
+                    while True:
+                        chunk = stored_file.read(
+                            LargeFileHandler.DEFAULT_CHUNK_SIZE
+                        )
+
+                        if not chunk:
+                            break
+
+                        content.extend(chunk)
+
+                adapter_result = StructuredAdapter.extract(
+                    bytes(content),
+                    filename,
+                    format_type=detected_format,
+                )
+
+                extracted_content = adapter_result.get("content")
+                processing_status = "success"
+
+            except Exception as e:
+                error_code = (
+                    "INVALID_JSON"
+                    if detected_format == "json"
+                    else "INVALID_CSV"
+                )
+
+                return JSONResponse(
+                    status_code=400,
+                    content=RuntimeErrorResponse.build(
+                        trace_id=trace_id,
+                        error_code=error_code,
+                        message=(
+                            f"Failed to parse "
+                            f"{detected_format.upper()}: {str(e)}"
+                        ),
+                        stage="ingestion",
+                        failed_step="structured_adapter",
+                        source_type=detected_format,
+                    ),
+                )
+
+        # ---------------------------------------------------------
+        # 6. Intelligence integration
+        # ---------------------------------------------------------
+        text_for_intel = (
+            extracted_content.get("text", "")
+            if extracted_content
+            else ""
+        )
+
         try:
-            adapter_result = StructuredAdapter.extract(content, filename, format_type=detected_format)
-            extracted_content = adapter_result.get("content")
-            processing_status = "success"
+            canonical_intelligence = ManualIntelligenceService().process(
+                content=text_for_intel,
+                source=selected_route,
+            )
+
+            if isinstance(canonical_intelligence, dict):
+
+                # Preserve the canonical endpoint lineage.
+                canonical_intelligence["trace_id"] = trace_id
+
+                if (
+                    "provenance" in canonical_intelligence
+                    and isinstance(
+                        canonical_intelligence["provenance"],
+                        dict,
+                    )
+                ):
+                    canonical_intelligence["provenance"][
+                        "execution_id"
+                    ] = execution_id
+
+                    canonical_intelligence["provenance"][
+                        "input_fingerprint"
+                    ] = file_hash
+
+                if (
+                    "replay" in canonical_intelligence
+                    and isinstance(
+                        canonical_intelligence["replay"],
+                        dict,
+                    )
+                ):
+                    canonical_intelligence["replay"][
+                        "original_trace_id"
+                    ] = trace_id
+
         except Exception as e:
-            error_code = "INVALID_JSON" if detected_format == "json" else "INVALID_CSV"
             return JSONResponse(
-                status_code=400,
+                status_code=500,
                 content=RuntimeErrorResponse.build(
                     trace_id=trace_id,
-                    error_code=error_code,
-                    message=f"Failed to parse {detected_format.upper()}: {str(e)}",
-                    stage="ingestion",
-                    failed_step="structured_adapter",
+                    error_code="INTELLIGENCE_ERROR",
+                    message=f"Failed to generate intelligence: {str(e)}",
+                    stage="intelligence",
+                    failed_step="manual_intelligence_service",
                     source_type=detected_format,
                 ),
             )
-    else:
-        processing_status = "adapter_not_implemented"
-    
-    # -----------------------------------
-    # Intelligence integration
-    # -----------------------------------
 
-    # After successful extraction we generate canonical intelligence
-    # Use the extracted text; if missing, default to empty string
-    text_for_intel = extracted_content.get("text", "") if extracted_content else ""
-    try:
-        canonical_intelligence = ManualIntelligenceService().process(
-            content=text_for_intel,
-            source=selected_route,
-        )
-        if isinstance(canonical_intelligence, dict):
-            # Preserve the original /api/ingest trace_id and lineage
-            canonical_intelligence["trace_id"] = trace_id
-            if "provenance" in canonical_intelligence and isinstance(canonical_intelligence["provenance"], dict):
-                canonical_intelligence["provenance"]["execution_id"] = execution_id
-                canonical_intelligence["provenance"]["input_fingerprint"] = file_hash
-            if "replay" in canonical_intelligence and isinstance(canonical_intelligence["replay"], dict):
-                canonical_intelligence["replay"]["original_trace_id"] = trace_id
-    except Exception as e:
-        # Return a runtime error response consistent with other failures
-        return JSONResponse(
-            status_code=500,
-            content=RuntimeErrorResponse.build(
-                trace_id=trace_id,
-                error_code="INTELLIGENCE_ERROR",
-                message=f"Failed to generate intelligence: {str(e)}",
-                stage="intelligence",
-                failed_step="manual_intelligence_service",
-                source_type=detected_format,
+        # ---------------------------------------------------------
+        # 7. Persist the complete result locally, then publish only
+        # compact lineage/reference metadata to Bucket.
+        # ---------------------------------------------------------
+        bucket_artifact = None
+        output_manifest = None
+
+        try:
+            output_manifest = OutputStore().write_result(
+                canonical_intelligence=canonical_intelligence,
+                execution_id=execution_id,
+                input_fingerprint=file_hash,
             )
+        except Exception as e:
+            return JSONResponse(
+                status_code=500,
+                content=RuntimeErrorResponse.build(
+                    trace_id=trace_id,
+                    error_code="OUTPUT_PERSISTENCE_ERROR",
+                    message=f"Failed to persist intelligence output: {str(e)}",
+                    stage="output_persistence",
+                    failed_step="output_store_write_result",
+                    source_type=detected_format,
+                ),
+            )
+
+        bucket_metadata = {
+            "trace_id": trace_id,
+            "execution_id": execution_id,
+            "input_fingerprint": file_hash,
+            "schema_version": output_manifest["schema_version"],
+            "timestamp": canonical_intelligence.get("timestamp"),
+            "output_reference": output_manifest["output_reference"],
+            "output_size_bytes": output_manifest["output_size_bytes"],
+            "output_sha256": output_manifest["output_sha256"],
+            "artifact_type": "canonical_intelligence_reference",
+        }
+
+        try:
+            bucket_artifact = BucketClient().store_artifact(
+                bucket_metadata
+            )
+
+        except Exception as e:
+            return JSONResponse(
+                status_code=500,
+                content=RuntimeErrorResponse.build(
+                    trace_id=trace_id,
+                    error_code="BUCKET_PERSISTENCE_ERROR",
+                    message=(
+                        f"Failed to store Bucket lineage reference after "
+                        f"output creation: {str(e)}"
+                    ),
+                    stage="bucket_persistence",
+                    failed_step="bucket_client_store_artifact_reference",
+                    source_type=detected_format,
+                ),
+            )
+
+        # ---------------------------------------------------------
+        # 8. Return canonical ingestion response
+        # ---------------------------------------------------------
+        return IngestionResponse(
+            status="success",
+            filename=filename,
+            content_type=content_type,
+            size_bytes=size_bytes,
+            detected_format=detected_format,
+            selected_route=selected_route,
+            execution_id=execution_id,
+            trace_id=trace_id,
+            input_fingerprint=file_hash,
+            processing_status=processing_status,
+            content=extracted_content,
+            canonical_intelligence=canonical_intelligence,
+            bucket_artifact={
+                **(bucket_artifact or {}),
+                **{
+                    "output_reference": output_manifest["output_reference"],
+                    "output_size_bytes": output_manifest["output_size_bytes"],
+                    "output_sha256": output_manifest["output_sha256"],
+                },
+            },
         )
 
-    # Persist canonical intelligence to Bucket
-    bucket_artifact = None
-    try:
-        bucket_artifact = BucketClient().store_artifact(canonical_intelligence)
-    except Exception as e:
-        return JSONResponse(
-            status_code=500,
-            content=RuntimeErrorResponse.build(
-                trace_id=trace_id,
-                error_code="BUCKET_PERSISTENCE_ERROR",
-                message=f"Failed to store artifact in Bucket: {str(e)}",
-                stage="bucket_persistence",
-                failed_step="bucket_client_store_artifact",
-                source_type=detected_format,
-            ),
-        )
-
-    return IngestionResponse(
-        status="success",
-        filename=filename,
-        content_type=content_type,
-        size_bytes=size_bytes,
-        detected_format=detected_format,
-        selected_route=selected_route,
-        execution_id=execution_id,
-        trace_id=trace_id,
-        input_fingerprint=file_hash,
-        processing_status=processing_status,
-        content=extracted_content,
-        canonical_intelligence=canonical_intelligence,
-        bucket_artifact=bucket_artifact,
-    )
+    finally:
+        # ---------------------------------------------------------
+        # 9. Always remove temporary upload
+        #
+        # This prevents repeated large uploads from filling disk.
+        # ---------------------------------------------------------
+        if file_path:
+            try:
+                if os.path.exists(file_path):
+                    os.unlink(file_path)
+            except OSError as cleanup_error:
+                print(
+                    f"[SAMACHAR CLEANUP WARNING] "
+                    f"Failed to remove temporary file "
+                    f"{file_path}: {cleanup_error}"
+                )
 
 
 @app.get("/api/intelligence/{trace_id}", response_model=IntelligenceRetrievalResponse)
@@ -8009,11 +8079,11 @@ async def get_intelligence_by_trace_id(trace_id: str):
             source_type="intelligence",
         )
 
-    # Extract canonical intelligence payload and lineage
+    # Extract compact Bucket lineage/reference metadata.
     if isinstance(artifact_data, dict):
         raw_artifact = artifact_data.get("artifact", artifact_data)
         if isinstance(raw_artifact, dict) and "payload" in raw_artifact and isinstance(raw_artifact["payload"], dict):
-            canonical_intelligence = raw_artifact["payload"]
+            bucket_payload = raw_artifact["payload"]
             bucket_artifact = {
                 "artifact_id": raw_artifact.get("artifact_id") or artifact_data.get("artifact_id"),
                 "hash": raw_artifact.get("hash") or artifact_data.get("hash"),
@@ -8022,7 +8092,7 @@ async def get_intelligence_by_trace_id(trace_id: str):
                 "storage_type": artifact_data.get("storage_type") or raw_artifact.get("storage_type", "append_only"),
             }
         elif "payload" in artifact_data and isinstance(artifact_data["payload"], dict):
-            canonical_intelligence = artifact_data["payload"]
+            bucket_payload = artifact_data["payload"]
             bucket_artifact = {
                 "artifact_id": artifact_data.get("artifact_id"),
                 "hash": artifact_data.get("hash"),
@@ -8033,12 +8103,84 @@ async def get_intelligence_by_trace_id(trace_id: str):
         else:
             canonical_intelligence = artifact_data
             bucket_artifact = artifact_data.get("bucket_artifact")
+
+        if "bucket_payload" in locals() and "output_reference" in bucket_payload:
+            bucket_artifact.update({
+                "trace_id": bucket_payload.get("trace_id") or clean_trace_id,
+                "execution_id": bucket_payload.get("execution_id"),
+                "input_fingerprint": bucket_payload.get("input_fingerprint"),
+                "schema_version": bucket_payload.get("schema_version"),
+                "output_reference": bucket_payload.get("output_reference"),
+                "output_size_bytes": bucket_payload.get("output_size_bytes"),
+                "output_sha256": bucket_payload.get("output_sha256"),
+            })
+            try:
+                canonical_intelligence, output_manifest = OutputStore().read_by_trace_id(
+                    clean_trace_id,
+                    expected_metadata=bucket_payload,
+                )
+            except OutputNotFoundError as e:
+                return _governed_error_response(
+                    trace_id=clean_trace_id,
+                    status_code=503,
+                    error_code="STORAGE_INCOMPLETE",
+                    message=str(e),
+                    stage="retrieval",
+                    failed_step="output_store_read_by_trace_id",
+                    source_type="intelligence",
+                )
+            except (OutputIntegrityError, OutputStoreError) as e:
+                return _governed_error_response(
+                    trace_id=clean_trace_id,
+                    status_code=500,
+                    error_code="INTELLIGENCE_INTEGRITY_ERROR",
+                    message=str(e),
+                    stage="retrieval",
+                    failed_step="output_store_integrity_verification",
+                    source_type="intelligence",
+                )
+            bucket_artifact.update({
+                "output_reference": output_manifest["output_reference"],
+                "output_size_bytes": output_manifest["output_size_bytes"],
+                "output_sha256": output_manifest["output_sha256"],
+            })
+        elif "bucket_payload" in locals():
+            canonical_intelligence = bucket_payload
     else:
         canonical_intelligence = None
         bucket_artifact = None
 
     provenance = canonical_intelligence.get("provenance", {}) if isinstance(canonical_intelligence, dict) else {}
     replay = canonical_intelligence.get("replay", {}) if isinstance(canonical_intelligence, dict) else {}
+
+    if isinstance(bucket_artifact, dict) and isinstance(provenance, dict):
+        expected_execution_id = bucket_artifact.get("execution_id")
+        actual_execution_id = provenance.get("execution_id") or canonical_intelligence.get("execution_id")
+        expected_input_fingerprint = bucket_artifact.get("input_fingerprint")
+        actual_input_fingerprint = (
+            provenance.get("input_fingerprint")
+            or replay.get("input_fingerprint")
+        )
+        if expected_execution_id and actual_execution_id != expected_execution_id:
+            return _governed_error_response(
+                trace_id=clean_trace_id,
+                status_code=500,
+                error_code="INTELLIGENCE_INTEGRITY_ERROR",
+                message="Stored execution_id does not match Bucket lineage.",
+                stage="retrieval",
+                failed_step="execution_id_verification",
+                source_type="intelligence",
+            )
+        if expected_input_fingerprint and actual_input_fingerprint != expected_input_fingerprint:
+            return _governed_error_response(
+                trace_id=clean_trace_id,
+                status_code=500,
+                error_code="INTELLIGENCE_INTEGRITY_ERROR",
+                message="Stored input_fingerprint does not match Bucket lineage.",
+                stage="retrieval",
+                failed_step="input_fingerprint_verification",
+                source_type="intelligence",
+            )
 
     execution_id = (
         provenance.get("execution_id")

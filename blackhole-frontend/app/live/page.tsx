@@ -8,10 +8,27 @@ import TTSPlayer from '../../components/TTSPlayer'
 import PipelineViewer from '../../components/PipelineViewer'
 import AIInsights from '../../components/AIInsights'
 import FeedbackPanel from '../../components/FeedbackPanel'
-import { checkBackendHealth, getDetailedPipelineStatus } from '../../lib/api'
-import apiService from '../../services/api'
+import { checkBackendHealth, getDetailedPipelineStatus, getSankalpFeed, type SankalpItem } from '../../lib/api'
 import { Filter, LayoutGrid } from 'lucide-react'
 import { useWebSocket } from '../../hooks/useWebSocket'
+
+function mapSankalpItem(item: SankalpItem) {
+  return {
+    id: item.id,
+    title: item.title || 'Untitled article',
+    source: item.source || 'Unknown source',
+    category: item.category || 'general',
+    status: 'completed',
+    timestamp: item.timestamp || new Date().toISOString(),
+    summary: item.summary_medium || item.summary_short || item.script || '',
+    url: item.url || item.id,
+    priority_score: item.priority_score,
+    trend_score: item.trend_score,
+    audioDuration: item.audio_duration,
+    synthesisStatus: item.synthesis_status,
+    feedback: { likes: 0, skips: 0, flags: 0 }
+  }
+}
 
 export default function LiveDashboard() {
   const [backendStatus, setBackendStatus] = useState<'online' | 'offline' | 'checking'>('checking')
@@ -76,7 +93,6 @@ export default function LiveDashboard() {
 
   useEffect(() => {
     checkBackend()
-    loadCategories()
     loadNews()
 
     const interval = setInterval(checkBackend, 30000)
@@ -96,31 +112,35 @@ export default function LiveDashboard() {
     }
   }
 
-  const loadCategories = async () => {
-    try {
-      const result = await apiService.getCategories()
-      if (result.success) {
-        setCategories(result.data)
-      }
-    } catch (error) {
-      console.error('Failed to load categories:', error)
-    }
-  }
-
   const loadNews = async () => {
     setIsLoading(true)
     try {
-      const result = await apiService.getNews({
-        category: selectedCategory,
-        limit: 20
-      })
+      const feed = await getSankalpFeed()
+      const mappedItems = feed.items.map(mapSankalpItem)
+      const categoryCounts = mappedItems.reduce<Record<string, number>>((counts, item) => {
+        counts[item.category] = (counts[item.category] || 0) + 1
+        return counts
+      }, {})
 
-      if (result.success) {
-        setNewsItems(result.data)
-        // Auto-select first item if none selected
-        if (!selectedItem && result.data.length > 0) {
-          setSelectedItem(result.data[0])
-        }
+      setCategories([
+        { id: 'all', name: 'All', count: mappedItems.length },
+        ...Object.entries(categoryCounts).map(([id, count]) => ({
+          id,
+          name: id.charAt(0).toUpperCase() + id.slice(1),
+          count
+        }))
+      ])
+
+      const filteredItems = selectedCategory === 'all'
+        ? mappedItems
+        : mappedItems.filter(item => item.category === selectedCategory)
+      setNewsItems(filteredItems)
+
+      // Auto-select the first item if none is selected or it is no longer visible.
+      if (filteredItems.length > 0 && (!selectedItem || !filteredItems.some(item => item.id === selectedItem.id))) {
+        setSelectedItem(filteredItems[0])
+      } else if (filteredItems.length === 0) {
+        setSelectedItem(null)
       }
     } catch (error) {
       console.error('Failed to load news:', error)
@@ -150,15 +170,6 @@ export default function LiveDashboard() {
 
   const handleItemSelect = async (item: any) => {
     setSelectedItem(item)
-    // Fetch full details if item is from a list (which might be partial)
-    try {
-      const fullItem = await apiService.getProcessedNews(item.id)
-      if (fullItem && fullItem.success) {
-        setSelectedItem(fullItem.data)
-      }
-    } catch (error) {
-      console.error('Failed to fetch full news details:', error)
-    }
   }
 
   return (
@@ -312,4 +323,3 @@ export default function LiveDashboard() {
     </div>
   )
 }
-

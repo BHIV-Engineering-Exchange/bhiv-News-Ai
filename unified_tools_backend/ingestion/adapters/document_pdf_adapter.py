@@ -48,3 +48,45 @@ class DocumentPdfAdapter:
             raise
         except Exception as e:
             raise ValueError(f"Failed to parse PDF: {str(e)}")
+
+    @staticmethod
+    def extract_from_path(file_path: str, filename: str) -> Dict[str, Any]:
+        """Extract PDF content directly from a filesystem path.
+
+        This avoids loading the uploaded PDF into memory before parsing.
+        """
+
+        if not file_path:
+            raise ValueError("File path is required")
+
+        reader = PdfReader(file_path)
+
+        page_count = len(reader.pages)
+
+        text_parts = []
+
+        for page in reader.pages:
+            extracted = page.extract_text()
+
+            if extracted:
+                text_parts.append(extracted)
+
+        text = "\n".join(text_parts)
+
+        metadata = {}
+
+        if reader.metadata:
+            metadata = {
+                str(key): str(value)
+                for key, value in reader.metadata.items()
+            }
+
+        return {
+            "format": "pdf",
+            "filename": filename,
+            "content": {
+                "text": text,
+                "page_count": page_count,
+                "metadata": metadata,
+            },
+        }
