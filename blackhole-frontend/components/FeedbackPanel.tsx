@@ -127,7 +127,7 @@ export default function FeedbackPanel({
     
     try {
       const signals: FeedbackSignals = { manual_override: true }
-      const response = await submitFeedback(newsId, item || {}, signals)
+      const response = await submitFeedback(newsId, item || {}, signals, flagReason)
 
       setFeedbackGiven('flag')
       setToastMessage(`🚩 Content flagged - Action: ${response.action}`)
@@ -272,33 +272,6 @@ export default function FeedbackPanel({
         </div>
       )}
 
-      {/* RL Info Box */}
-      <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-4">
-        <div className="flex items-start space-x-3">
-          <div className="flex-shrink-0">
-            <div className="w-8 h-8 bg-purple-500/20 rounded-full flex items-center justify-center">
-              <span className="text-lg">🧠</span>
-            </div>
-          </div>
-          <div>
-            <h4 className="text-sm font-semibold text-white mb-1">Reinforcement Learning</h4>
-            <p className="text-xs text-gray-400">
-              Your feedback helps train our AI to provide better news recommendations. Each interaction improves the system&apos;s understanding of quality content.
-            </p>
-            <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
-              <div className="bg-black/30 rounded px-2 py-1">
-                <span className="text-gray-500">Model Version:</span>
-                <span className="text-white ml-1 font-semibold">v2.3.1</span>
-              </div>
-              <div className="bg-black/30 rounded px-2 py-1">
-                <span className="text-gray-500">Accuracy:</span>
-                <span className="text-green-400 ml-1 font-semibold">94.2%</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Toast Notification */}
       {showToast && (
         <div className="fixed top-4 right-4 z-50 animate-slide-in">
@@ -310,4 +283,3 @@ export default function FeedbackPanel({
     </div>
   )
 }
-

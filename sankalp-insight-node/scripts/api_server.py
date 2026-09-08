@@ -46,7 +46,7 @@ class ApiHandler(BaseHTTPRequestHandler):
 
 def main():
     host = os.environ.get("API_HOST", "127.0.0.1")
-    port = int(os.environ.get("API_PORT", "8000"))
+    port = int(os.environ.get("API_PORT", "8001"))
     server = ThreadingHTTPServer((host, port), ApiHandler)
     print(f"API server running at http://{host}:{port}/")
     try:

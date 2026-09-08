@@ -1,6 +1,6 @@
 const SHARED_API_BASE = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000'
 const API_BASE = process.env.NEXT_PUBLIC_NOOPUR_API_BASE || SHARED_API_BASE
-const SANKALP_API_BASE = process.env.NEXT_PUBLIC_SANKALP_API_BASE || SHARED_API_BASE
+const SANKALP_API_BASE = process.env.NEXT_PUBLIC_SANKALP_API_BASE || 'http://localhost:8001'
 
 export interface WorkflowResult {
   success: boolean
@@ -493,7 +493,9 @@ export async function getSankalpFeed(): Promise<SankalpFeedResponse> {
       return { items: [] }
     }
 
-    const url = `${SANKALP_API_BASE}/exports/weekly_report.json`
+    // The running FastAPI backend serves the shared weekly export on port 8000.
+    // Keep SANKALP_API_BASE for the separate feedback service on port 8001.
+    const url = `${SHARED_API_BASE}/exports/weekly_report.json`
     const secureHeaders = await buildSecureHeaders(url, 'GET')
 
     // Create abort controller for timeout
@@ -524,7 +526,7 @@ export async function getSankalpFeed(): Promise<SankalpFeedResponse> {
 
     if (!response.ok) {
       // Fallback: try sample_integration.json
-      const fallbackUrl = `${SANKALP_API_BASE}/exports/sample_integration.json`
+      const fallbackUrl = `${SHARED_API_BASE}/exports/sample_integration.json`
       const fallbackHeaders = await buildSecureHeaders(fallbackUrl, 'GET')
       const fallbackController = new AbortController()
       const fallbackTimeoutId = setTimeout(() => fallbackController.abort(), 5000)
@@ -577,46 +579,10 @@ export async function getSankalpFeed(): Promise<SankalpFeedResponse> {
 export async function submitFeedback(
   itemId: string,
   item: Partial<SankalpItem>,
-  signals: FeedbackSignals
+  signals: FeedbackSignals,
+  reason?: string
 ): Promise<FeedbackResponse> {
-  try {
-    // Determine primary endpoint based on where the item came from
-    // For news items processed by Noopur Node, we use its feedback router
-    const feedbackUrl = `${API_BASE}/api/feedback`
-    const feedbackType = signals.editor_approve ? 'approve' : (signals.user_like ? 'like' : (signals.user_skip ? 'skip' : 'view'))
-
-    const response = await fetch(feedbackUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        newsId: itemId,
-        feedbackType: feedbackType,
-        metadata: {
-          signals,
-          title: item.title,
-          timestamp: new Date()
-        }
-      }),
-    })
-
-    if (!response.ok) {
-      // Fallback to Sankalp feedback if main orchestrator fails
-      return await submitSankalpFeedback(itemId, item, signals)
-    }
-
-    const data = await response.json()
-    return {
-      id: itemId,
-      reward: data.reward || 0,
-      action: feedbackType,
-      requeued: false
-    }
-  } catch (error) {
-    console.error('Failed to submit feedback:', error)
-    return await submitSankalpFeedback(itemId, item, signals)
-  }
+  return await submitSankalpFeedback(itemId, item, signals, reason)
 }
 
 /**
@@ -625,13 +591,15 @@ export async function submitFeedback(
 async function submitSankalpFeedback(
   itemId: string,
   item: Partial<SankalpItem>,
-  signals: FeedbackSignals
+  signals: FeedbackSignals,
+  reason?: string
 ): Promise<FeedbackResponse> {
   const url = `${SANKALP_API_BASE}/feedback`
   const body = {
     id: itemId,
     item: item,
-    signals: signals,
+    signals,
+    ...(reason ? { reason } : {}),
   }
   const secureHeaders = await buildSecureHeaders(url, 'POST', body)
 

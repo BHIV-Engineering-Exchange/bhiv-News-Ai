@@ -39,7 +39,7 @@ export default function Header({ backendStatus }: HeaderProps) {
     { href: '/live', label: '🔴 Live Dashboard', id: 'live' },
     { href: '/analyze', label: '🔬 Analyze', id: 'analyze' },
     { href: '/dashboard', label: '📊 Analytics', id: 'dashboard' },
-    { href: '/advanced', label: '🧪 Advanced', id: 'advanced' },
+    { href: '/ttv', label: '🎬 TTV', id: 'ttv' },
     { href: '/ingest', label: '📥 Ingest', id: 'ingest' },
   ]
 
