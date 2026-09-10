@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
-import { Menu, X, Activity, Clock, LogOut, User } from 'lucide-react'
+import { Menu, X, LogOut, User } from 'lucide-react'
 import { useAuth } from '@/lib/auth'
 
 interface HeaderProps {
@@ -16,30 +16,13 @@ export default function Header({ backendStatus }: HeaderProps) {
   const pathname = usePathname()
   const { user, isAuthenticated, logout } = useAuth()
 
-  const getStatusColor = () => {
-    switch (backendStatus) {
-      case 'online': return 'bg-green-500'
-      case 'offline': return 'bg-red-500'
-      case 'checking': return 'bg-yellow-500 animate-pulse'
-      default: return 'bg-gray-500'
-    }
-  }
-
-  const getStatusText = () => {
-    switch (backendStatus) {
-      case 'online': return 'Backend Online'
-      case 'offline': return 'Backend Offline'
-      case 'checking': return 'Checking...'
-      default: return 'Unknown'
-    }
-  }
-
   const navItems = [
     { href: '/', label: '🏠 Home', id: 'home' },
     { href: '/live', label: '🔴 Live Dashboard', id: 'live' },
     { href: '/analyze', label: '🔬 Analyze', id: 'analyze' },
     { href: '/dashboard', label: '📊 Analytics', id: 'dashboard' },
     { href: '/ttv', label: '🎬 TTV', id: 'ttv' },
+    { href: '/stt', label: '🎙️ STT', id: 'stt' },
     { href: '/ingest', label: '📥 Ingest', id: 'ingest' },
   ]
 
@@ -106,7 +89,7 @@ export default function Header({ backendStatus }: HeaderProps) {
           </Link>
 
           {/* Navigation - Desktop */}
-          <nav className="hidden md:flex items-center space-x-8">
+          <nav className="hidden md:flex flex-1 items-center justify-evenly">
             {navItems.map((item) => (
               <Link
                 key={item.id}
@@ -121,26 +104,8 @@ export default function Header({ backendStatus }: HeaderProps) {
             ))}
           </nav>
 
-          {/* Status and User Info */}
-          <div className="hidden lg:flex items-center space-x-6">
-            {/* Backend Status */}
-            <div className="flex items-center space-x-2">
-              <div className={`w-3 h-3 rounded-full ${getStatusColor()}`}></div>
-              <span className="text-sm text-gray-300">{getStatusText()}</span>
-            </div>
-
-            {/* Stats */}
-            <div className="flex items-center space-x-4 text-sm text-gray-400">
-              <div className="flex items-center space-x-1">
-                <Activity className="w-4 h-4" />
-                <span>8/7 Online</span>
-              </div>
-              <div className="flex items-center space-x-1">
-                <Clock className="w-4 h-4" />
-                <span>921hrs</span>
-              </div>
-            </div>
-
+          {/* User Info */}
+          <div className="hidden lg:flex items-center">
             {/* User Info */}
             <div className="flex items-center space-x-3">
               <div className="flex items-center space-x-2 px-3 py-1.5 bg-white/5 rounded-lg border border-white/10">
@@ -188,11 +153,6 @@ export default function Header({ backendStatus }: HeaderProps) {
 
               {/* Mobile Status & User */}
               <div className="pt-4 border-t border-white/10 space-y-3">
-                <div className="flex items-center space-x-2">
-                  <div className={`w-3 h-3 rounded-full ${getStatusColor()}`}></div>
-                  <span className="text-sm text-gray-300">{getStatusText()}</span>
-                </div>
-                
                 {user && (
                   <div className="flex items-center space-x-2 text-sm text-gray-300">
                     <User className="w-4 h-4 text-purple-400" />

@@ -339,10 +339,6 @@ export default function NewsFeed() {
 
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
-                    <span className="text-xs text-gray-500 flex items-center">
-                      <Clock className="w-3 h-3 mr-1" />
-                      {news.readTime || (news.audio_duration ? `${Math.ceil(news.audio_duration)}s` : '')}
-                    </span>
                     {news.tone && (
                       <span className="text-xs text-gray-500 capitalize" title="Tone">
                         🎭 {news.tone}
@@ -350,20 +346,6 @@ export default function NewsFeed() {
                     )}
                   </div>
                   <div className="flex items-center space-x-3">
-                    {news.audio_path && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          // Open audio player modal or play audio
-                          console.log('Play audio:', news.audio_path)
-                        }}
-                        className="text-sm text-green-400 hover:text-green-300 font-semibold flex items-center group/btn"
-                        title="Play Audio"
-                      >
-                        <PlayCircle className="w-4 h-4 mr-1" />
-                        Audio
-                      </button>
-                    )}
                     {news.isScraped && news.relatedVideos?.length ? (
                       <button
                         onClick={(e) => {
@@ -376,7 +358,7 @@ export default function NewsFeed() {
                         Watch Video
                         <span className="ml-1 group-hover/btn:translate-x-1 transition-transform">▶</span>
                       </button>
-                    ) : !news.audio_path && (
+                    ) : (
                       <button
                         onClick={(e) => {
                           e.stopPropagation()
@@ -590,5 +572,4 @@ function mergeByUrl(items: NewsItem[]): NewsItem[] {
   }
   return merged
 }
-
 

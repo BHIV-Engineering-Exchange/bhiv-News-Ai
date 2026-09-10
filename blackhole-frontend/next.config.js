@@ -2,6 +2,10 @@
 const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
+  env: {
+    VITE_STT_API_URL: process.env.VITE_STT_API_URL,
+    NEXT_PUBLIC_TTV_API_URL: process.env.NEXT_PUBLIC_TTV_API_URL,
+  },
 
   // Image optimization
   images: {

@@ -1,26 +1,69 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Header from '@/components/Header'
 import { Video, Sparkles, Loader2, AlertCircle, RotateCcw } from 'lucide-react'
 
-type GenerationResult =
-  | { status: 'not-configured'; message: string }
-  | { status: 'success'; videoUrl: string }
+type JobStatus = {
+  status?: string
+  progress?: number
+  progress_percent?: number
+  video_id?: string
+  videoId?: string
+  job_id?: string
+  jobId?: string
+  error?: string
+  message?: string
+  detail?: string
+  [key: string]: unknown
+}
 
-// Integration point for the future external TTV service.
-async function generateVideo(_prompt: string): Promise<GenerationResult> {
-  return {
-    status: 'not-configured',
-    message: 'Video generation is not configured yet. Connect the external TTV API to continue.'
+const TTV_API_URL = (process.env.NEXT_PUBLIC_TTV_API_URL || 'http://163.128.209.18:8019').replace(/\/$/, '')
+const POLL_INTERVAL_MS = 3000
+const MAX_POLL_ATTEMPTS = 200
+
+function getErrorMessage(payload: JobStatus | null, fallback: string) {
+  const message = payload?.error || payload?.message || payload?.detail
+  return typeof message === 'string' && message.trim() ? message : fallback
+}
+
+async function readJson(response: Response) {
+  return response.json().catch(() => null) as Promise<JobStatus | null>
+}
+
+async function startVideoGeneration(prompt: string) {
+  const response = await fetch(`${TTV_API_URL}/api/v1/generate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prompt }),
+  })
+  const payload = await readJson(response)
+
+  if (!response.ok) {
+    throw new Error(getErrorMessage(payload, `Video generation failed with status ${response.status}.`))
   }
+
+  const jobId = payload?.job_id || payload?.jobId
+  if (typeof jobId !== 'string' || !jobId) {
+    throw new Error('The video service did not return a job ID.')
+  }
+  return jobId
 }
 
 export default function TTVPage() {
   const [prompt, setPrompt] = useState('')
   const [videoUrl, setVideoUrl] = useState<string | null>(null)
   const [isGenerating, setIsGenerating] = useState(false)
+  const [progress, setProgress] = useState(0)
+  const [processingStatus, setProcessingStatus] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const pollingCancelledRef = useRef(false)
+
+  useEffect(() => {
+    return () => {
+      pollingCancelledRef.current = true
+    }
+  }, [])
 
   const handleGenerate = async () => {
     const trimmedPrompt = prompt.trim()
@@ -28,26 +71,62 @@ export default function TTVPage() {
 
     setError(null)
     setVideoUrl(null)
+    setProgress(0)
+    setProcessingStatus('Submitting prompt...')
     setIsGenerating(true)
+    pollingCancelledRef.current = false
 
     try {
-      const result = await generateVideo(trimmedPrompt)
-      if (result.status === 'success') {
-        setVideoUrl(result.videoUrl)
-      } else {
-        setError(result.message)
+      const jobId = await startVideoGeneration(trimmedPrompt)
+      setProcessingStatus('Video generation in progress...')
+
+      for (let attempt = 0; attempt < MAX_POLL_ATTEMPTS; attempt += 1) {
+        if (pollingCancelledRef.current) return
+
+        const response = await fetch(`${TTV_API_URL}/api/v1/jobs/${encodeURIComponent(jobId)}`)
+        const payload = await readJson(response)
+        if (!response.ok) {
+          throw new Error(getErrorMessage(payload, `Unable to check video job status (${response.status}).`))
+        }
+
+        const status = (payload?.status || '').toLowerCase()
+        const reportedProgress = payload?.progress_percent ?? payload?.progress
+        if (typeof reportedProgress === 'number') {
+          setProgress(Math.max(0, Math.min(100, reportedProgress <= 1 ? reportedProgress * 100 : reportedProgress)))
+        }
+        if (status) setProcessingStatus(`Status: ${status}`)
+
+        const videoId = payload?.video_id || payload?.videoId
+        if (videoId && (status === 'completed' || status === 'complete' || status === 'success' || !status)) {
+          setProgress(100)
+          setProcessingStatus('Video ready')
+          setVideoUrl(`${TTV_API_URL}/api/v1/videos/${encodeURIComponent(String(videoId))}?stream=true`)
+          return
+        }
+
+        if (['failed', 'error', 'cancelled', 'canceled'].includes(status)) {
+          throw new Error(getErrorMessage(payload, 'The video generation job failed.'))
+        }
+
+        await new Promise((resolve) => window.setTimeout(resolve, POLL_INTERVAL_MS))
       }
-    } catch {
-      setError('Video generation failed. Please try again later.')
+
+      throw new Error('Video generation timed out while waiting for the backend.')
+    } catch (generationError) {
+      setError(generationError instanceof Error ? generationError.message : 'Video generation failed. Please try again later.')
     } finally {
-      setIsGenerating(false)
+      if (!pollingCancelledRef.current) setIsGenerating(false)
     }
   }
 
   const handleNewPrompt = () => {
+    pollingCancelledRef.current = true
     setPrompt('')
     setVideoUrl(null)
+    setProgress(0)
+    setProcessingStatus(null)
     setError(null)
+    setIsGenerating(false)
   }
 
   return (
@@ -107,6 +186,21 @@ export default function TTVPage() {
                 )}
               </button>
 
+              {isGenerating && (
+                <div className="mt-6 space-y-2">
+                  <div className="flex items-center justify-between text-sm text-gray-400">
+                    <span>{processingStatus || 'Processing...'}</span>
+                    <span>{Math.round(progress)}%</span>
+                  </div>
+                  <div className="h-2 overflow-hidden rounded-full bg-black/50">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-500"
+                      style={{ width: `${Math.max(progress, 5)}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+
               {error && (
                 <div className="mt-6 p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-xl flex items-start space-x-3">
                   <AlertCircle className="w-5 h-5 text-yellow-400 mt-0.5 flex-shrink-0" />
@@ -133,11 +227,14 @@ export default function TTVPage() {
                 <video
                   src={videoUrl}
                   controls
+                  autoPlay
                   className="w-full aspect-video rounded-2xl bg-black object-contain"
                 />
               ) : (
                 <div className="aspect-video rounded-2xl border border-dashed border-white/20 bg-black/30 flex items-center justify-center text-center p-6">
-                  <p className="text-gray-500">Your generated video will appear here.</p>
+                  <p className="text-gray-500">
+                    {isGenerating ? 'Your video is being generated...' : 'Your generated video will appear here.'}
+                  </p>
                 </div>
               )}
             </section>
