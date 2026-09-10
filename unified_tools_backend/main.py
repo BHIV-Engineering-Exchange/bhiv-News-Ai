@@ -7193,10 +7193,32 @@ async def ingest_image_intelligence(
                 source_type="image",
             )
 
-        #offline
+        image_bucket_metadata = {
+            "trace_id": canonical_intelligence.get("trace_id"),
+            "execution_id": canonical_intelligence.get("execution_id"),
+            "input_fingerprint": (
+                canonical_intelligence
+                .get("provenance", {})
+                .get("input_fingerprint")
+            ),
+            "schema_version": canonical_intelligence.get("schema_version"),
+            "timestamp": canonical_intelligence.get("timestamp"),
+            "filename": (
+                canonical_intelligence
+                .get("source", {})
+                .get("filename")
+            ),
+            "input_type": (
+                canonical_intelligence
+                .get("source", {})
+                .get("input_type")
+            ),
+            "artifact_type": "canonical_intelligence_reference",
+        }
+
         try:
             bucket_response = (
-                bucket_client.store_artifact(canonical_intelligence))
+                bucket_client.store_artifact(image_bucket_metadata))
 
             print("\n========== BUCKET ==========")
             print(bucket_response)
@@ -7971,20 +7993,10 @@ async def ingest_file(file: UploadFile = File(...)):
             )
 
         except Exception as e:
-            return JSONResponse(
-                status_code=500,
-                content=RuntimeErrorResponse.build(
-                    trace_id=trace_id,
-                    error_code="BUCKET_PERSISTENCE_ERROR",
-                    message=(
-                        f"Failed to store Bucket lineage reference after "
-                        f"output creation: {str(e)}"
-                    ),
-                    stage="bucket_persistence",
-                    failed_step="bucket_client_store_artifact_reference",
-                    source_type=detected_format,
-                ),
+            logger.warning(
+                "Bucket persistence failed (non-fatal): %s", e
             )
+            bucket_artifact = None
 
         # ---------------------------------------------------------
         # 8. Return canonical ingestion response
