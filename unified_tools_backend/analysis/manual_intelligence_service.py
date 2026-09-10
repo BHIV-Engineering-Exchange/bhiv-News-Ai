@@ -1,5 +1,7 @@
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 import hashlib
+import os
 import uuid
 
 from analysis.news_intelligence_service import NewsIntelligenceService
@@ -25,15 +27,25 @@ class ManualIntelligenceService:
     SCHEMA_VERSION = "1.0.0"
 
     # Keep NLP input safely below spaCy's default 1,000,000
-    # character limit.
-    NLP_CHUNK_THRESHOLD = 900_000
+    # character limit. Content at or below this threshold is
+    # processed as a single chunk (no splitting needed).
+    NLP_CHUNK_THRESHOLD = 1_000_000
 
-    # Process large documents sequentially in bounded chunks.
-    NLP_CHUNK_SIZE = 50_000
+    # Process large documents in bounded chunks.
+    # 1M is safely at spaCy's limit and minimizes chunk count.
+    NLP_CHUNK_SIZE = 1_000_000
 
     # Small overlap helps prevent entities from being lost
     # when they occur across chunk boundaries.
     NLP_CHUNK_OVERLAP = 500
+
+    # Parallel workers for chunk processing.
+    # Defaults to CPU count (capped at 8) for maximum throughput.
+    # Override via SAMACHAR_CHUNK_WORKERS env var.
+    MAX_WORKERS = int(os.getenv(
+        "SAMACHAR_CHUNK_WORKERS",
+        str(min(os.cpu_count() or 4, 8)),
+    ))
 
     def __init__(self):
         self.intelligence_service = NewsIntelligenceService()
@@ -46,9 +58,10 @@ class ManualIntelligenceService:
             Process normally using the existing intelligence engine.
 
         Large inputs:
-            Split into bounded chunks and process sequentially.
-            This prevents a huge document from being passed to
-            spaCy/NER in a single operation.
+            Split into bounded chunks and process in parallel
+            using a thread pool. This prevents a huge document
+            from being passed to spaCy/NER in a single operation
+            and leverages multiple cores for faster throughput.
         """
         print(
             f"[SAMACHAR CHUNK DEBUG] Incoming intelligence text: "
@@ -67,29 +80,70 @@ class ManualIntelligenceService:
                 scraping_time=0,
             )
 
-        chunk_results = []
-
-        for chunk in TextChunker.chunks(
+        chunks = list(TextChunker.chunks(
             content,
             chunk_size=self.NLP_CHUNK_SIZE,
             overlap=self.NLP_CHUNK_OVERLAP,
-        ):
-            print(
-                f"[SAMACHAR CHUNK DEBUG] Processing chunk: "
-                f"{len(chunk)} characters"
-            )
+        ))
+
+        total_chunks = len(chunks)
+        print(
+            f"[SAMACHAR CHUNK DEBUG] Split into {total_chunks} chunks "
+            f"(size={self.NLP_CHUNK_SIZE}, overlap={self.NLP_CHUNK_OVERLAP})"
+        )
+
+        def _process_chunk(chunk_text: str) -> dict:
             intelligence_input = {
                 "title": "",
-                "content": chunk,
+                "content": chunk_text,
                 "publication_date": "",
             }
-
-            result = self.intelligence_service.process(
+            return self.intelligence_service.process(
                 intelligence_input,
                 scraping_time=0,
             )
 
-            chunk_results.append(result)
+        chunk_results = [None] * total_chunks
+
+        max_workers = min(self.MAX_WORKERS, total_chunks)
+
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            future_to_index = {
+                executor.submit(_process_chunk, chunk): idx
+                for idx, chunk in enumerate(chunks)
+            }
+
+            for future in as_completed(future_to_index):
+                idx = future_to_index[future]
+                try:
+                    chunk_results[idx] = future.result()
+                    print(
+                        f"[SAMACHAR CHUNK DEBUG] Completed chunk "
+                        f"{idx + 1}/{total_chunks}"
+                    )
+                except Exception as exc:
+                    print(
+                        f"[SAMACHAR CHUNK DEBUG] Chunk {idx + 1} "
+                        f"failed: {exc}"
+                    )
+                    chunk_results[idx] = {
+                        "validated_entities": {
+                            "names": [],
+                            "organizations": [],
+                            "locations": [],
+                            "dates": [],
+                        },
+                        "classification": {},
+                        "evidence": [],
+                        "confidence": {},
+                        "processing_trace": {
+                            "status": "FAILED",
+                            "error": str(exc),
+                        },
+                        "rejected_entities": [],
+                    }
+
+        chunk_results = [r for r in chunk_results if r is not None]
 
         return self._aggregate_results(chunk_results)
 

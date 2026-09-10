@@ -237,7 +237,43 @@ export default function IngestPage() {
                     View complete JSON response
                   </summary>
                   <pre className="custom-scrollbar mt-3 max-h-96 overflow-auto rounded-lg bg-black/40 p-4 text-xs text-gray-300">
-                    {JSON.stringify(result, null, 2)}
+                    {(() => {
+                      const summary: Record<string, unknown> = {
+                        status: result.status,
+                        filename: result.filename,
+                        content_type: result.content_type,
+                        size_bytes: result.size_bytes,
+                        detected_format: result.detected_format,
+                        selected_route: result.selected_route,
+                        execution_id: result.execution_id,
+                        trace_id: result.trace_id,
+                        input_fingerprint: result.input_fingerprint,
+                        processing_status: result.processing_status,
+                      }
+
+                      if (result.canonical_intelligence) {
+                        const ci = result.canonical_intelligence as Record<string, unknown>
+                        summary.canonical_intelligence = {
+                          schema_version: ci.schema_version,
+                          trace_id: ci.trace_id,
+                          timestamp: ci.timestamp,
+                          source: ci.source,
+                          provenance: ci.provenance,
+                          processing_trace: ci.processing_trace,
+                          downstream: ci.downstream,
+                          intelligence: ci.intelligence
+                            ? { _summary: 'intelligence data present (omitted for display)' }
+                            : null,
+                          errors: ci.errors,
+                        }
+                      }
+
+                      if (result.bucket_artifact) {
+                        summary.bucket_artifact = result.bucket_artifact
+                      }
+
+                      return JSON.stringify(summary, null, 2)
+                    })()}
                   </pre>
                 </details>
               </>
